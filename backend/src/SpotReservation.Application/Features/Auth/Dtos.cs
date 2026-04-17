@@ -1,0 +1,12 @@
+namespace SpotReservation.Application.Features.Auth;
+
+public sealed record RegisterRequest(string Email, string Password);
+
+public sealed record LoginRequest(string Email, string Password);
+
+public sealed record AuthResponse(
+    Guid UserId,
+    string Email,
+    string Role,
+    string Token,
+    DateTime ExpiresAtUtc);

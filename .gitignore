@@ -1,0 +1,55 @@
+# ------------------------
+# .NET build output
+# ------------------------
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# ------------------------
+# User-specific / IDE files
+# ------------------------
+*.user
+*.suo
+*.userprefs
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# ------------------------
+# Rider / ReSharper
+# ------------------------
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# ------------------------
+# ASP.NET secrets
+# ------------------------
+**/appsettings.*.local.json
+**/secrets.json
+
+# ------------------------
+# OS
+# ------------------------
+.DS_Store
+Thumbs.db
+
+# ------------------------
+# NuGet
+# ------------------------
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+!packages/build/

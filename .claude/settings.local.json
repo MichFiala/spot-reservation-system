@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build *)",
+      "Bash(dotnet ef *)",
+      "Bash(dotnet add *)",
+      "Bash(dotnet run *)",
+      "Bash(curl -s http://localhost:5000/api/spots)",
+      "Bash(kill %1)",
+      "Bash(taskkill /F /IM dotnet.exe)"
+    ]
+  }
+}
