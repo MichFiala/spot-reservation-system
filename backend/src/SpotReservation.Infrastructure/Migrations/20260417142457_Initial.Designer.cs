@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NetTopologySuite.Geometries;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SpotReservation.Infrastructure.Persistence;
 
 #nullable disable
@@ -11,33 +13,38 @@ using SpotReservation.Infrastructure.Persistence;
 namespace SpotReservation.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260417114038_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260417142457_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("SpotReservation.Domain.Entities.Reservation", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("SpotId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("status")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(32)");
 
                     b.HasKey("Id");
 
@@ -55,22 +62,26 @@ namespace SpotReservation.Infrastructure.Migrations
             modelBuilder.Entity("SpotReservation.Domain.Entities.Spot", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
+
+                    b.Property<Point>("Location")
+                        .HasColumnType("geometry(Point, 4326)")
+                        .HasColumnName("location");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
 
@@ -82,25 +93,25 @@ namespace SpotReservation.Infrastructure.Migrations
             modelBuilder.Entity("SpotReservation.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(512)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(32)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(32)");
 
                     b.HasKey("Id");
 
@@ -115,7 +126,7 @@ namespace SpotReservation.Infrastructure.Migrations
                     b.HasBaseType("SpotReservation.Domain.Entities.Reservation");
 
                     b.Property<DateTime>("ApprovedAtUtc")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("approved_at_utc");
 
                     b.HasDiscriminator().HasValue("Approved");
@@ -126,7 +137,7 @@ namespace SpotReservation.Infrastructure.Migrations
                     b.HasBaseType("SpotReservation.Domain.Entities.Reservation");
 
                     b.Property<DateTime>("CancelledAtUtc")
-                        .HasColumnType("TEXT")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("cancelled_at_utc");
 
                     b.HasDiscriminator().HasValue("Cancelled");
@@ -156,14 +167,14 @@ namespace SpotReservation.Infrastructure.Migrations
                     b.OwnsOne("SpotReservation.Domain.ValueObjects.TimeRange", "Period", b1 =>
                         {
                             b1.Property<Guid>("ReservationId")
-                                .HasColumnType("TEXT");
+                                .HasColumnType("uuid");
 
                             b1.Property<DateTime>("EndUtc")
-                                .HasColumnType("TEXT")
+                                .HasColumnType("timestamp with time zone")
                                 .HasColumnName("end_utc");
 
                             b1.Property<DateTime>("StartUtc")
-                                .HasColumnType("TEXT")
+                                .HasColumnType("timestamp with time zone")
                                 .HasColumnName("start_utc");
 
                             b1.HasKey("ReservationId");

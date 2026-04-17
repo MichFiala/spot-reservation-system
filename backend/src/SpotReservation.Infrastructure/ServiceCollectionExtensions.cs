@@ -25,7 +25,7 @@ public static class ServiceCollectionExtensions
                 "Connection string 'Default' is missing. Configure it via appsettings or environment variables.");
 
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(connectionString, o => o.UseNetTopologySuite()));
+            options.UseNpgsql(connectionString, o => o.UseNetTopologySuite()));
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<IUserRepository, UserRepository>();

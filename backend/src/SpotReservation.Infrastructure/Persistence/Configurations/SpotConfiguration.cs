@@ -21,6 +21,10 @@ internal sealed class SpotConfiguration : IEntityTypeConfiguration<Spot>
         builder.Property(s => s.IsActive).IsRequired();
         builder.Property(s => s.CreatedAtUtc).IsRequired();
 
-        builder.Property(s => s.Location).HasColumnName("location");
+        builder.Property(s => s.Location)
+            .HasColumnName("location")
+            .HasColumnType("geometry(Point, 4326)")
+            .IsRequired(false);
+
     }
 }

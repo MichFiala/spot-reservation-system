@@ -7,7 +7,7 @@ public sealed record SpotDto(
     string? Description,
     bool IsActive,
     DateTime CreatedAtUtc,
-    Point Location);
+    Point? Location);
 
 public sealed record CreateSpotRequest(
     string Name,
@@ -18,4 +18,4 @@ public sealed record UpdateSpotRequest(
     string Name,
     string? Description,
     bool IsActive,
-    Point Location);
+    Point? Location);
