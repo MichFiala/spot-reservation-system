@@ -5,23 +5,15 @@ using SpotReservation.Domain.Repositories;
 
 namespace SpotReservation.Application.Features.Spots;
 
-internal sealed class SpotService : ISpotService
+internal sealed class SpotService(
+    ISpotRepository spots,
+    IUnitOfWork uow,
+    IDateTimeProvider clock) : ISpotService
 {
-    private readonly ISpotRepository _spots;
-    private readonly IUnitOfWork _uow;
-    private readonly IDateTimeProvider _clock;
-
-    public SpotService(ISpotRepository spots, IUnitOfWork uow, IDateTimeProvider clock)
-    {
-        _spots = spots;
-        _uow = uow;
-        _clock = clock;
-    }
-
     public async Task<IReadOnlyList<SpotDto>> ListAsync(bool onlyActive, CancellationToken cancellationToken = default)
     {
-        var spots = await _spots.ListAsync(onlyActive, cancellationToken);
-        return spots.Select(ToDto).ToList();
+        var result = await spots.ListAsync(onlyActive, cancellationToken);
+        return [.. result.Select(ToDto)];
     }
 
     public async Task<SpotDto> GetAsync(Guid id, CancellationToken cancellationToken = default)
@@ -35,10 +27,10 @@ internal sealed class SpotService : ISpotService
         if (string.IsNullOrWhiteSpace(request.Name))
             throw new ValidationException("Spot name is required.");
 
-        var spot = Spot.Create(request.Name, request.Description, _clock.UtcNow, request.Location);
+        var spot = Spot.Create(request.Name, request.Description, clock.UtcNow, request.Location);
 
-        await _spots.AddAsync(spot, cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        await spots.AddAsync(spot, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return ToDto(spot);
     }
@@ -54,20 +46,20 @@ internal sealed class SpotService : ISpotService
 
         if (request.IsActive) spot.Activate(); else spot.Deactivate();
 
-        await _uow.SaveChangesAsync(cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
         return ToDto(spot);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var spot = await LoadAsync(id, cancellationToken);
-        _spots.Remove(spot);
-        await _uow.SaveChangesAsync(cancellationToken);
+        spots.Remove(spot);
+        await uow.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<Spot> LoadAsync(Guid id, CancellationToken cancellationToken)
     {
-        var spot = await _spots.GetByIdAsync(id, cancellationToken);
+        var spot = await spots.GetByIdAsync(id, cancellationToken);
         return spot ?? throw new NotFoundException(nameof(Spot), id);
     }
 

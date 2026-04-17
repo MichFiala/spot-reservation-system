@@ -6,43 +6,28 @@ using SpotReservation.Domain.Repositories;
 
 namespace SpotReservation.Application.Features.Auth;
 
-internal sealed class AuthService : IAuthService
+internal sealed class AuthService(
+    IUserRepository users,
+    IUnitOfWork uow,
+    IPasswordHasher passwordHasher,
+    IJwtTokenService jwt,
+    IDateTimeProvider clock) : IAuthService
 {
-    private readonly IUserRepository _users;
-    private readonly IUnitOfWork _uow;
-    private readonly IPasswordHasher _passwordHasher;
-    private readonly IJwtTokenService _jwt;
-    private readonly IDateTimeProvider _clock;
-
-    public AuthService(
-        IUserRepository users,
-        IUnitOfWork uow,
-        IPasswordHasher passwordHasher,
-        IJwtTokenService jwt,
-        IDateTimeProvider clock)
-    {
-        _users = users;
-        _uow = uow;
-        _passwordHasher = passwordHasher;
-        _jwt = jwt;
-        _clock = clock;
-    }
-
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default)
     {
         ValidateCredentials(request.Email, request.Password);
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        if (await _users.EmailExistsAsync(normalizedEmail, cancellationToken))
+        if (await users.EmailExistsAsync(normalizedEmail, cancellationToken))
         {
             throw new ConflictException($"A user with email '{normalizedEmail}' already exists.");
         }
 
-        var hash = _passwordHasher.Hash(request.Password);
-        var user = User.Register(normalizedEmail, hash, UserRole.User, _clock.UtcNow);
+        var hash = passwordHasher.Hash(request.Password);
+        var user = User.Register(normalizedEmail, hash, UserRole.User, clock.UtcNow);
 
-        await _users.AddAsync(user, cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        await users.AddAsync(user, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
 
         return BuildResponse(user);
     }
@@ -52,8 +37,8 @@ internal sealed class AuthService : IAuthService
         ValidateCredentials(request.Email, request.Password);
 
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
-        var user = await _users.GetByEmailAsync(normalizedEmail, cancellationToken);
-        if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
+        var user = await users.GetByEmailAsync(normalizedEmail, cancellationToken);
+        if (user is null || !passwordHasher.Verify(request.Password, user.PasswordHash))
         {
             throw new UnauthorizedException("Invalid email or password.");
         }
@@ -63,7 +48,7 @@ internal sealed class AuthService : IAuthService
 
     private AuthResponse BuildResponse(User user)
     {
-        var token = _jwt.Generate(user);
+        var token = jwt.Generate(user);
         return new AuthResponse(
             user.Id,
             user.Email,

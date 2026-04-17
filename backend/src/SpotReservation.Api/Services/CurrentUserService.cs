@@ -3,13 +3,9 @@ using SpotReservation.Application.Abstractions;
 
 namespace SpotReservation.Api.Services;
 
-internal sealed class CurrentUserService : ICurrentUserService
+internal sealed class CurrentUserService(IHttpContextAccessor accessor) : ICurrentUserService
 {
-    private readonly IHttpContextAccessor _accessor;
-
-    public CurrentUserService(IHttpContextAccessor accessor) => _accessor = accessor;
-
-    private ClaimsPrincipal? Principal => _accessor.HttpContext?.User;
+    private ClaimsPrincipal? Principal => accessor.HttpContext?.User;
 
     public Guid? UserId
     {

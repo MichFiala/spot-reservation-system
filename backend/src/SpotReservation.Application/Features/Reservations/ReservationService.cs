@@ -7,29 +7,14 @@ using SpotReservation.Domain.ValueObjects;
 
 namespace SpotReservation.Application.Features.Reservations;
 
-internal sealed class ReservationService : IReservationService
+internal sealed class ReservationService(
+    IReservationRepository reservations,
+    ISpotRepository spots,
+    IUnitOfWork uow,
+    ICurrentUserService currentUser,
+    IDateTimeProvider clock) : IReservationService
 {
     private const string AdminRole = "Admin";
-
-    private readonly IReservationRepository _reservations;
-    private readonly ISpotRepository _spots;
-    private readonly IUnitOfWork _uow;
-    private readonly ICurrentUserService _currentUser;
-    private readonly IDateTimeProvider _clock;
-
-    public ReservationService(
-        IReservationRepository reservations,
-        ISpotRepository spots,
-        IUnitOfWork uow,
-        ICurrentUserService currentUser,
-        IDateTimeProvider clock)
-    {
-        _reservations = reservations;
-        _spots = spots;
-        _uow = uow;
-        _currentUser = currentUser;
-        _clock = clock;
-    }
 
     public async Task<ReservationDto> CreateAsync(CreateReservationRequest request, CancellationToken cancellationToken = default)
     {
@@ -37,10 +22,10 @@ internal sealed class ReservationService : IReservationService
 
         var period = TimeRange.Create(request.StartUtc, request.EndUtc);
 
-        var spot = await _spots.GetByIdAsync(request.SpotId, cancellationToken)
+        var spot = await spots.GetByIdAsync(request.SpotId, cancellationToken)
             ?? throw new NotFoundException(nameof(Spot), request.SpotId);
 
-        if (await _reservations.HasOverlapAsync(spot.Id, period, cancellationToken))
+        if (await reservations.HasOverlapAsync(spot.Id, period, cancellationToken))
         {
             throw new ConflictException($"Spot '{spot.Id}' already has a reservation overlapping the requested time window.");
         }
@@ -48,15 +33,15 @@ internal sealed class ReservationService : IReservationService
         Reservation reservation;
         try
         {
-            reservation = Reservation.Place(spot, userId, period, _clock.UtcNow);
+            reservation = Reservation.Place(spot, userId, period, clock.UtcNow);
         }
         catch (SpotInactiveException ex)
         {
             throw new ConflictException(ex.Message);
         }
 
-        await _reservations.AddAsync(reservation, cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        await reservations.AddAsync(reservation, cancellationToken);
+        await uow.SaveChangesAsync(cancellationToken);
         return ToDto(reservation);
     }
 
@@ -70,14 +55,14 @@ internal sealed class ReservationService : IReservationService
     public async Task<IReadOnlyList<ReservationDto>> ListMineAsync(CancellationToken cancellationToken = default)
     {
         var userId = RequireUserId();
-        var reservations = await _reservations.ListForUserAsync(userId, cancellationToken);
-        return reservations.Select(ToDto).ToList();
+        var result = await reservations.ListForUserAsync(userId, cancellationToken);
+        return result.Select(ToDto).ToList();
     }
 
     public async Task<IReadOnlyList<ReservationDto>> ListForSpotAsync(Guid spotId, CancellationToken cancellationToken = default)
     {
-        var reservations = await _reservations.ListForSpotAsync(spotId, cancellationToken);
-        return reservations.Select(ToDto).ToList();
+        var result = await reservations.ListForSpotAsync(spotId, cancellationToken);
+        return result.Select(ToDto).ToList();
     }
 
     public async Task CancelAsync(Guid id, CancellationToken cancellationToken = default)
@@ -85,7 +70,7 @@ internal sealed class ReservationService : IReservationService
         var reservation = await LoadAsync(id, cancellationToken);
         EnsureOwnerOrAdmin(reservation);
 
-        var nowUtc = _clock.UtcNow;
+        var nowUtc = clock.UtcNow;
         var cancelled = reservation switch
         {
             PendingReservation p  => (Reservation)p.Cancel(nowUtc),
@@ -94,25 +79,25 @@ internal sealed class ReservationService : IReservationService
             _                     => throw new InvalidOperationException($"Unexpected reservation type: {reservation.GetType().Name}")
         };
 
-        await _reservations.TransitionAsync(reservation, cancelled, cancellationToken);
+        await reservations.TransitionAsync(reservation, cancelled, cancellationToken);
     }
 
     private async Task<Reservation> LoadAsync(Guid id, CancellationToken cancellationToken)
     {
-        var reservation = await _reservations.GetByIdAsync(id, cancellationToken);
+        var reservation = await reservations.GetByIdAsync(id, cancellationToken);
         return reservation ?? throw new NotFoundException(nameof(Reservation), id);
     }
 
     private Guid RequireUserId()
     {
-        return _currentUser.UserId
+        return currentUser.UserId
             ?? throw new UnauthorizedException("An authenticated user is required.");
     }
 
     private void EnsureOwnerOrAdmin(Reservation reservation)
     {
         var userId = RequireUserId();
-        if (reservation.UserId != userId && !_currentUser.IsInRole(AdminRole))
+        if (reservation.UserId != userId && !currentUser.IsInRole(AdminRole))
         {
             throw new UnauthorizedException("You do not have access to this reservation.");
         }
