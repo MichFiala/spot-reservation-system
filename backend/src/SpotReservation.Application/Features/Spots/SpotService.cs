@@ -69,5 +69,5 @@ internal sealed class SpotService(
         spot.Description,
         spot.IsActive,
         spot.CreatedAtUtc,
-        null);
+        spot.Location);
 }

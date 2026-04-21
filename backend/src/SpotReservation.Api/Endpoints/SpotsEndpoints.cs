@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using SpotReservation.Application.Features.Spots;
 
 namespace SpotReservation.Api.Endpoints;
@@ -19,7 +20,7 @@ public static class SpotsEndpoints
             .Produces<SpotDto>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPost("/", async (CreateSpotRequest request, ISpotService spots, CancellationToken ct) =>
+        group.MapPost("/", async ([FromBody]CreateSpotRequest request, ISpotService spots, CancellationToken ct) =>
         {
             var created = await spots.CreateAsync(request, ct);
             return Results.Created($"/api/spots/{created.Id}", created);

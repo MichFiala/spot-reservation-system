@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Table from '@mui/material/Table';
@@ -13,7 +13,7 @@ import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import { format } from 'date-fns';
-import { reservationsApi } from '../../api/reservations';
+import { ReservationsApi } from '../../api-client';
 
 const statusColor: Record<string, 'warning' | 'success' | 'error' | 'default'> = {
   Pending: 'warning',
@@ -22,17 +22,17 @@ const statusColor: Record<string, 'warning' | 'success' | 'error' | 'default'> =
 };
 
 export default function MyReservationsPage() {
-  const queryClient = useQueryClient();
+    const reservationsApi = new ReservationsApi(); 
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['reservations', 'mine'],
-    queryFn: reservationsApi.listMine,
+    queryFn: reservationsApi.apiReservationsMineGet,
   });
 
-  const { mutate: cancel, isPending: cancelling } = useMutation({
-    mutationFn: reservationsApi.cancel,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reservations'] }),
-  });
+  // const { mutate: cancel, isPending: cancelling } = useMutation({
+  //   mutationFn: reservationsApi.apiReservationsIdCancelPost,
+  //   onSuccess: () => queryClient.invalidateQueries({ queryKey: ['reservations'] }),
+  // });
 
   if (isLoading) {
     return (
@@ -52,11 +52,11 @@ export default function MyReservationsPage() {
         My Reservations
       </Typography>
 
-      {data?.length === 0 && (
+      {data?.data?.length === 0 && (
         <Typography color="text.secondary">You have no reservations yet.</Typography>
       )}
 
-      {data && data.length > 0 && (
+      {data && data.data && data.data.length > 0 && (
         <TableContainer component={Paper} variant="outlined">
           <Table>
             <TableHead>
@@ -69,7 +69,7 @@ export default function MyReservationsPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((r) => (
+              {data.data.map((r) => (
                 <TableRow key={r.id} hover>
                   <TableCell>{r.spotId}</TableCell>
                   <TableCell>{format(new Date(r.startUtc), 'dd MMM yyyy HH:mm')}</TableCell>
@@ -87,8 +87,8 @@ export default function MyReservationsPage() {
                         size="small"
                         color="error"
                         variant="outlined"
-                        disabled={cancelling}
-                        onClick={() => cancel(r.id)}
+                        // disabled={cancelling}
+                        // onClick={() => cancel(r.id)}
                       >
                         Cancel
                       </Button>

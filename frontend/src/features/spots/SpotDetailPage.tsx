@@ -14,8 +14,8 @@ import TextField from '@mui/material/TextField';
 import Divider from '@mui/material/Divider';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useSpot } from './useSpots';
-import { reservationsApi } from '../../api/reservations';
 import { useAuthStore } from '../../store/authStore';
+import { ReservationsApi } from '../../api-client';
 
 const schema = z
   .object({
@@ -35,7 +35,7 @@ export default function SpotDetailPage() {
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuthStore();
 
-  const { data: spot, isLoading, isError } = useSpot(id!);
+  const { data, isLoading, isError } = useSpot(id!);
 
   const {
     register,
@@ -46,7 +46,10 @@ export default function SpotDetailPage() {
 
   const { mutate, isPending, isSuccess, error } = useMutation({
     mutationFn: (values: FormValues) =>
-      reservationsApi.create({ spotId: id!, ...values }),
+    {
+      const reservationsApi = new ReservationsApi();
+      return reservationsApi.apiReservationsPost({ spotId: id!, ...values })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
       reset();
@@ -61,7 +64,7 @@ export default function SpotDetailPage() {
     );
   }
 
-  if (isError || !spot) {
+  if (isError || !data?.data) {
     return <Alert severity="error" sx={{ mt: 4 }}>Spot not found.</Alert>;
   }
 
@@ -78,14 +81,14 @@ export default function SpotDetailPage() {
       <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
-            {spot.name}
+            {data?.data?.name}
           </Typography>
-          <Chip label={spot.isActive ? 'Active' : 'Inactive'} color={spot.isActive ? 'success' : 'default'} />
+          <Chip label={data?.data?.isActive ? 'Active' : 'Inactive'} color={data?.data?.isActive ? 'success' : 'default'} />
         </Box>
 
-        {spot.description && (
+        {data?.data?.description && (
           <Typography variant="body1" color="text.secondary">
-            {spot.description}
+            {data?.data?.description}
           </Typography>
         )}
       </Paper>
@@ -138,7 +141,7 @@ export default function SpotDetailPage() {
             variant="contained"
             fullWidth
             size="large"
-            disabled={isPending || !isAuthenticated() || !spot.isActive}
+            disabled={isPending || !isAuthenticated() || !data?.data?.isActive}
           >
             {isPending ? <CircularProgress size={22} color="inherit" /> : 'Reserve'}
           </Button>

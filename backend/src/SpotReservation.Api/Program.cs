@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.OpenApi.Models;
+using NetTopologySuite.IO.Converters;
 using SpotReservation.Api.Endpoints;
 using SpotReservation.Api.Middleware;
 using SpotReservation.Api.Services;
@@ -27,31 +29,13 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddOpenApi();
+
+builder.Services.Configure<JsonOptions>(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Spot Reservation API",
-        Version = "v1",
-    });
-
-    var bearerScheme = new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Description = "Enter JWT as: Bearer {token}",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        Reference = new OpenApiReference { Id = "Bearer", Type = ReferenceType.SecurityScheme },
-    };
-
-    options.AddSecurityDefinition("Bearer", bearerScheme);
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        [bearerScheme] = Array.Empty<string>(),
-    });
+    options.SerializerOptions.Converters.Add(new GeoJsonConverterFactory());
 });
+
 
 var app = builder.Build();
 
@@ -60,8 +44,7 @@ app.UseCors("Frontend");
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();

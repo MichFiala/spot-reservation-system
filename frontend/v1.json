@@ -1,0 +1,1277 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "SpotReservation.Api | v1",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5042/"
+    }
+  ],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/spots": {
+      "get": {
+        "tags": [
+          "Spots"
+        ],
+        "parameters": [
+          {
+            "name": "onlyActive",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SpotDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Spots"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSpotRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/spots/{id}": {
+      "get": {
+        "tags": [
+          "Spots"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Spots"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSpotRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Spots"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/reservations": {
+      "post": {
+        "tags": [
+          "Reservations"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReservationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    },
+    "/api/reservations/{id}": {
+      "get": {
+        "tags": [
+          "Reservations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/reservations/mine": {
+      "get": {
+        "tags": [
+          "Reservations"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservations/by-spot/{spotId}": {
+      "get": {
+        "tags": [
+          "Reservations"
+        ],
+        "parameters": [
+          {
+            "name": "spotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReservationDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/reservations/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Reservations"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "409": {
+            "description": "Conflict"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AuthResponse": {
+        "required": [
+          "userId",
+          "email",
+          "role",
+          "token",
+          "expiresAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "expiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Coordinate": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "z": {
+            "type": "number",
+            "format": "double"
+          },
+          "m": {
+            "type": "number",
+            "format": "double"
+          },
+          "coordinateValue": {
+            "$ref": "#/components/schemas/Coordinate"
+          },
+          "isValid": {
+            "type": "boolean"
+          }
+        },
+        "nullable": true
+      },
+      "Coordinate2": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "z": {
+            "type": "number",
+            "format": "double"
+          },
+          "m": {
+            "type": "number",
+            "format": "double"
+          },
+          "coordinateValue": {
+            "$ref": "#/components/schemas/Coordinate"
+          },
+          "isValid": {
+            "type": "boolean"
+          }
+        },
+        "nullable": true
+      },
+      "Coordinate3": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "z": {
+            "type": "number",
+            "format": "double"
+          },
+          "m": {
+            "type": "number",
+            "format": "double"
+          },
+          "coordinateValue": {
+            "$ref": "#/components/schemas/Coordinate"
+          },
+          "isValid": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CoordinateEqualityComparer": {
+        "type": "object",
+        "nullable": true
+      },
+      "CoordinateSequence": {
+        "type": "object",
+        "properties": {
+          "dimension": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "measures": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "spatial": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ordinates": {
+            "$ref": "#/components/schemas/Ordinates"
+          },
+          "hasZ": {
+            "type": "boolean"
+          },
+          "hasM": {
+            "type": "boolean"
+          },
+          "zOrdinateIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mOrdinateIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "first": {
+            "$ref": "#/components/schemas/Coordinate"
+          },
+          "last": {
+            "$ref": "#/components/schemas/Coordinate2"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "nullable": true
+      },
+      "CoordinateSequenceFactory": {
+        "type": "object",
+        "properties": {
+          "ordinates": {
+            "$ref": "#/components/schemas/Ordinates"
+          }
+        },
+        "nullable": true
+      },
+      "CreateReservationRequest": {
+        "required": [
+          "spotId",
+          "startUtc",
+          "endUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateSpotRequest": {
+        "required": [
+          "name",
+          "description",
+          "location"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "$ref": "#/components/schemas/Point3"
+          }
+        }
+      },
+      "Dimension": {
+        "type": "integer"
+      },
+      "Envelope": {
+        "type": "object",
+        "properties": {
+          "isNull": {
+            "type": "boolean"
+          },
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "height": {
+            "type": "number",
+            "format": "double"
+          },
+          "diameter": {
+            "type": "number",
+            "format": "double"
+          },
+          "minX": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxX": {
+            "type": "number",
+            "format": "double"
+          },
+          "minY": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxY": {
+            "type": "number",
+            "format": "double"
+          },
+          "area": {
+            "type": "number",
+            "format": "double"
+          },
+          "minExtent": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxExtent": {
+            "type": "number",
+            "format": "double"
+          },
+          "centre": {
+            "$ref": "#/components/schemas/Coordinate2"
+          }
+        },
+        "nullable": true
+      },
+      "Geometry": {
+        "type": "object",
+        "properties": {
+          "factory": {
+            "$ref": "#/components/schemas/GeometryFactory"
+          },
+          "userData": { },
+          "srid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "geometryType": {
+            "type": "string",
+            "nullable": true
+          },
+          "ogcGeometryType": {
+            "$ref": "#/components/schemas/OgcGeometryType"
+          },
+          "precisionModel": {
+            "$ref": "#/components/schemas/PrecisionModel"
+          },
+          "coordinate": {
+            "$ref": "#/components/schemas/Coordinate2"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": { },
+            "nullable": true
+          },
+          "numPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numGeometries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isSimple": {
+            "type": "boolean"
+          },
+          "isValid": {
+            "type": "boolean"
+          },
+          "isEmpty": {
+            "type": "boolean"
+          },
+          "area": {
+            "type": "number",
+            "format": "double"
+          },
+          "length": {
+            "type": "number",
+            "format": "double"
+          },
+          "centroid": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "interiorPoint": {
+            "nullable": true
+          },
+          "pointOnSurface": {
+            "nullable": true
+          },
+          "dimension": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "boundary": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "boundaryDimension": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "envelope": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "envelopeInternal": {
+            "nullable": true
+          },
+          "isRectangle": {
+            "type": "boolean"
+          }
+        },
+        "nullable": true
+      },
+      "GeometryFactory": {
+        "type": "object",
+        "properties": {
+          "precisionModel": {
+            "$ref": "#/components/schemas/PrecisionModel"
+          },
+          "coordinateSequenceFactory": {
+            "$ref": "#/components/schemas/CoordinateSequenceFactory"
+          },
+          "srid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "geometryServices": {
+            "$ref": "#/components/schemas/NtsGeometryServices"
+          }
+        },
+        "nullable": true
+      },
+      "GeometryOverlay": {
+        "type": "object",
+        "nullable": true
+      },
+      "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "NtsGeometryServices": {
+        "type": "object",
+        "properties": {
+          "geometryOverlay": {
+            "$ref": "#/components/schemas/GeometryOverlay"
+          },
+          "coordinateEqualityComparer": {
+            "$ref": "#/components/schemas/CoordinateEqualityComparer"
+          },
+          "defaultSRID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "defaultCoordinateSequenceFactory": {
+            "$ref": "#/components/schemas/CoordinateSequenceFactory"
+          },
+          "defaultPrecisionModel": {
+            "$ref": "#/components/schemas/PrecisionModel"
+          }
+        },
+        "nullable": true
+      },
+      "OgcGeometryType": {
+        "type": "integer"
+      },
+      "Ordinates": {
+        "type": "integer"
+      },
+      "Point": {
+        "type": "object",
+        "properties": {
+          "coordinateSequence": {
+            "$ref": "#/components/schemas/CoordinateSequence"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Coordinate3"
+            },
+            "nullable": true
+          },
+          "numPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isEmpty": {
+            "type": "boolean"
+          },
+          "dimension": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "boundaryDimension": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "coordinate": {
+            "$ref": "#/components/schemas/Coordinate2"
+          },
+          "geometryType": {
+            "type": "string",
+            "nullable": true
+          },
+          "ogcGeometryType": {
+            "$ref": "#/components/schemas/OgcGeometryType"
+          },
+          "boundary": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "z": {
+            "type": "number",
+            "format": "double"
+          },
+          "m": {
+            "type": "number",
+            "format": "double"
+          },
+          "factory": {
+            "nullable": true
+          },
+          "userData": { },
+          "srid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "precisionModel": {
+            "nullable": true
+          },
+          "numGeometries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isSimple": {
+            "type": "boolean"
+          },
+          "isValid": {
+            "type": "boolean"
+          },
+          "area": {
+            "type": "number",
+            "format": "double"
+          },
+          "length": {
+            "type": "number",
+            "format": "double"
+          },
+          "centroid": {
+            "nullable": true
+          },
+          "interiorPoint": {
+            "nullable": true
+          },
+          "pointOnSurface": {
+            "nullable": true
+          },
+          "envelope": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "envelopeInternal": {
+            "nullable": true
+          },
+          "isRectangle": {
+            "type": "boolean"
+          }
+        },
+        "nullable": true
+      },
+      "Point2": {
+        "type": "object",
+        "properties": {
+          "coordinateSequence": {
+            "nullable": true
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Coordinate3"
+            },
+            "nullable": true
+          },
+          "numPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isEmpty": {
+            "type": "boolean"
+          },
+          "dimension": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "boundaryDimension": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "coordinate": {
+            "nullable": true
+          },
+          "geometryType": {
+            "type": "string",
+            "nullable": true
+          },
+          "ogcGeometryType": {
+            "$ref": "#/components/schemas/OgcGeometryType"
+          },
+          "boundary": {
+            "nullable": true
+          },
+          "z": {
+            "type": "number",
+            "format": "double"
+          },
+          "m": {
+            "type": "number",
+            "format": "double"
+          },
+          "factory": {
+            "nullable": true
+          },
+          "userData": { },
+          "srid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "precisionModel": {
+            "nullable": true
+          },
+          "numGeometries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isSimple": {
+            "type": "boolean"
+          },
+          "isValid": {
+            "type": "boolean"
+          },
+          "area": {
+            "type": "number",
+            "format": "double"
+          },
+          "length": {
+            "type": "number",
+            "format": "double"
+          },
+          "centroid": {
+            "nullable": true
+          },
+          "interiorPoint": {
+            "nullable": true
+          },
+          "pointOnSurface": {
+            "nullable": true
+          },
+          "envelope": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "envelopeInternal": {
+            "nullable": true
+          },
+          "isRectangle": {
+            "type": "boolean"
+          }
+        },
+        "nullable": true
+      },
+      "Point3": {
+        "type": "object",
+        "properties": {
+          "coordinateSequence": {
+            "$ref": "#/components/schemas/CoordinateSequence"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Coordinate3"
+            },
+            "nullable": true
+          },
+          "numPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isEmpty": {
+            "type": "boolean"
+          },
+          "dimension": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "boundaryDimension": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "coordinate": {
+            "$ref": "#/components/schemas/Coordinate2"
+          },
+          "geometryType": {
+            "type": "string",
+            "nullable": true
+          },
+          "ogcGeometryType": {
+            "$ref": "#/components/schemas/OgcGeometryType"
+          },
+          "boundary": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "z": {
+            "type": "number",
+            "format": "double"
+          },
+          "m": {
+            "type": "number",
+            "format": "double"
+          },
+          "factory": {
+            "nullable": true
+          },
+          "userData": { },
+          "srid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "precisionModel": {
+            "nullable": true
+          },
+          "numGeometries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isSimple": {
+            "type": "boolean"
+          },
+          "isValid": {
+            "type": "boolean"
+          },
+          "area": {
+            "type": "number",
+            "format": "double"
+          },
+          "length": {
+            "type": "number",
+            "format": "double"
+          },
+          "centroid": {
+            "nullable": true
+          },
+          "interiorPoint": {
+            "nullable": true
+          },
+          "pointOnSurface": {
+            "nullable": true
+          },
+          "envelope": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "envelopeInternal": {
+            "nullable": true
+          },
+          "isRectangle": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PrecisionModel": {
+        "type": "object",
+        "properties": {
+          "isFloating": {
+            "type": "boolean"
+          },
+          "maximumSignificantDigits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "scale": {
+            "type": "number",
+            "format": "double"
+          },
+          "gridSize": {
+            "type": "number",
+            "format": "double"
+          },
+          "precisionModelType": {
+            "$ref": "#/components/schemas/PrecisionModels"
+          }
+        },
+        "nullable": true
+      },
+      "PrecisionModels": {
+        "type": "integer"
+      },
+      "RegisterRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "ReservationDto": {
+        "required": [
+          "id",
+          "spotId",
+          "userId",
+          "startUtc",
+          "endUtc",
+          "status",
+          "createdAtUtc",
+          "approvedAtUtc",
+          "cancelledAtUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "spotId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "approvedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "cancelledAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "SpotDto": {
+        "required": [
+          "id",
+          "name",
+          "description",
+          "isActive",
+          "createdAtUtc",
+          "location"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Point"
+          }
+        }
+      },
+      "UpdateSpotRequest": {
+        "required": [
+          "name",
+          "description",
+          "isActive",
+          "location"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Point"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Spots"
+    },
+    {
+      "name": "Reservations"
+    }
+  ]
+}

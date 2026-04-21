@@ -1,17 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
-import { spotsApi } from '../../api/spots';
+import { SpotsApi } from "../../api-client/api";
 
 export function useSpots(onlyActive = true) {
+  const spotsApi = new SpotsApi(); 
+
   return useQuery({
-    queryKey: ['spots', { onlyActive }],
-    queryFn: () => spotsApi.list(onlyActive),
+    queryKey: ['spots'],
+    queryFn: () => spotsApi.apiSpotsGet(onlyActive),
   });
 }
 
 export function useSpot(id: string) {
+  const spotsApi = new SpotsApi(); 
+
   return useQuery({
     queryKey: ['spots', id],
-    queryFn: () => spotsApi.get(id),
+    queryFn: () => spotsApi.apiSpotsIdGet(id),
     enabled: Boolean(id),
   });
 }
