@@ -7,11 +7,22 @@ namespace SpotReservation.Infrastructure.Persistence.Repositories;
 internal sealed class SpotRepository(AppDbContext db) : ISpotRepository
 {
     public Task<Spot?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-        db.Spots.FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+        db.Spots.Include(s => s.ReservationPage).FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Spot>> ListAsync(bool onlyActive, CancellationToken cancellationToken = default)
     {
         var query = db.Spots.AsNoTracking().AsQueryable();
+        if (onlyActive)
+        {
+            query = query.Where(s => s.IsActive);
+        }
+
+        return await query.OrderBy(s => s.Name).ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Spot>> ListByPageAsync(string pageId, bool onlyActive, CancellationToken cancellationToken = default)
+    {
+        var query = db.Spots.AsNoTracking().Where(s => s.ReservationPageId == pageId);
         if (onlyActive)
         {
             query = query.Where(s => s.IsActive);

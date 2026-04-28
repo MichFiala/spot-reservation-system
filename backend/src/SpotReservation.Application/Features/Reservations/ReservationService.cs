@@ -18,7 +18,7 @@ internal sealed class ReservationService(
 
     public async Task<ReservationDto> CreateAsync(CreateReservationRequest request, CancellationToken cancellationToken = default)
     {
-        var userId = RequireUserId();
+        // var userId = RequireUserId();
 
         var period = TimeRange.Create(request.StartUtc, request.EndUtc);
 
@@ -33,7 +33,7 @@ internal sealed class ReservationService(
         Reservation reservation;
         try
         {
-            reservation = Reservation.Place(spot, userId, period, clock.UtcNow);
+            reservation = Reservation.Place(spot, period, clock.UtcNow);
         }
         catch (SpotInactiveException ex)
         {
@@ -97,19 +97,24 @@ internal sealed class ReservationService(
     private void EnsureOwnerOrAdmin(Reservation reservation)
     {
         var userId = RequireUserId();
-        if (reservation.UserId != userId && !currentUser.IsInRole(AdminRole))
-        {
-            throw new UnauthorizedException("You do not have access to this reservation.");
-        }
+        // if (reservation.UserId != userId && !currentUser.IsInRole(AdminRole))
+        // {
+        //     throw new UnauthorizedException("You do not have access to this reservation.");
+        // }
     }
 
     private static ReservationDto ToDto(Reservation reservation) => new(
         reservation.Id,
         reservation.SpotId,
-        reservation.UserId,
         reservation.Period.StartUtc,
         reservation.Period.EndUtc,
         reservation.GetType().Name.Replace("Reservation", string.Empty),
+        new PaymentInfoDto(
+            reservation.Spot.ReservationPage.PayementInformations.Iban,
+            reservation.Amount,
+            reservation.VariableSymbol,
+            reservation.Spot.ReservationPage.PayementInformations.Currency
+        ),
         reservation.CreatedAtUtc,
         (reservation as ApprovedReservation)?.ApprovedAtUtc,
         (reservation as CancelledReservation)?.CancelledAtUtc);

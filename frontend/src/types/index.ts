@@ -43,6 +43,24 @@ export interface CreateReservationRequest {
   endUtc: string;
 }
 
+export interface Page {
+  id: string;
+  name: string;
+  description: string | null;
+  address: string | null;
+  addressLocation: unknown | null;
+  mapCenter: unknown | null;
+  mapZoom: number;
+  mapMinZoom: number;
+  mapMaxZoom: number;
+  pricePerDay: number;
+  iban: string | null;
+  termsAndConditionsUrl: string | null;
+  openingHoursJson: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+}
+
 export interface ApiError {
   title: string;
   detail: string;

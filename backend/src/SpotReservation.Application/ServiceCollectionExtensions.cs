@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using SpotReservation.Application.Features.Auth;
 using SpotReservation.Application.Features.Reservations;
+using SpotReservation.Application.Features.ReservationPages;
 using SpotReservation.Application.Features.Spots;
 
 namespace SpotReservation.Application;
@@ -12,6 +13,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ISpotService, SpotService>();
         services.AddScoped<IReservationService, ReservationService>();
+        services.AddScoped<IReservationPageService, ReservationPageService>();
         return services;
     }
 }

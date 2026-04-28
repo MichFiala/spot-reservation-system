@@ -12,7 +12,7 @@ import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useAuthStore } from '../../store/authStore';
-import { AuthApi } from '../../api-client';
+import { authApi } from '../../api/apis';
 
 const schema = z
   .object({
@@ -39,10 +39,7 @@ export default function RegisterPage() {
 
   const { mutate, isPending, error } = useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
-    {
-        const authApi = new AuthApi(); 
-       return authApi.apiAuthRegisterPost({ email, password });
-    },
+      authApi.apiAuthRegisterPost({ email, password }),
     onSuccess: (data) => {
       setAuth(data.data);
       navigate('/spots');

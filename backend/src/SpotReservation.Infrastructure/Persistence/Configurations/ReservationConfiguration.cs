@@ -14,7 +14,7 @@ internal sealed class ReservationConfiguration : IEntityTypeConfiguration<Reserv
         builder.Property(r => r.Id).ValueGeneratedNever();
 
         builder.Property(r => r.SpotId).IsRequired();
-        builder.Property(r => r.UserId).IsRequired();
+        
         builder.Property(r => r.CreatedAtUtc).IsRequired();
 
         builder.HasDiscriminator<string>("status")
@@ -23,6 +23,7 @@ internal sealed class ReservationConfiguration : IEntityTypeConfiguration<Reserv
             .HasValue<CancelledReservation>("Cancelled");
 
         builder.Property<string>("status").HasMaxLength(32).IsRequired();
+        builder.Property(r => r.VariableSymbol).HasMaxLength(20).IsRequired();
 
         builder.OwnsOne(r => r.Period, period =>
         {
@@ -32,17 +33,19 @@ internal sealed class ReservationConfiguration : IEntityTypeConfiguration<Reserv
             period.HasIndex(p => p.EndUtc);
         });
 
-        builder.HasOne<Spot>()
-            .WithMany()
+        builder.HasOne(r => r.Spot)
+            .WithMany(s => s.Reservations)
             .HasForeignKey(r => r.SpotId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<User>()
+        builder.HasOne(r => r.ReservationPage)
             .WithMany()
-            .HasForeignKey(r => r.UserId)
+            .HasForeignKey(r => r.ReservationPageId)
+            .HasPrincipalKey(rp => rp.Id)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(r => r.SpotId);
-        builder.HasIndex(r => r.UserId);
+        // builder.HasIndex(r => r.UserId);
+        builder.HasIndex(r => r.ReservationPageId);
     }
 }

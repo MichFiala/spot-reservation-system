@@ -23,7 +23,7 @@ internal sealed class ReservationRepository(AppDbContext db) : IReservationRepos
     {
         return await db.Reservations
             .AsNoTracking()
-            .Where(r => r.UserId == userId)
+            // .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.Period.StartUtc)
             .ToListAsync(cancellationToken);
     }

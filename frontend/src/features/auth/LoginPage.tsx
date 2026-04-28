@@ -12,7 +12,7 @@ import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useAuthStore } from '../../store/authStore';
-import { AuthApi } from '../../api-client';
+import { authApi } from '../../api/apis';
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -32,13 +32,11 @@ export default function LoginPage() {
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const { mutate, isPending, error } = useMutation({
-    mutationFn: ({ email, password }: FormValues) => {
-      const authApi = new AuthApi();
-      return authApi.apiAuthLoginPost({ email, password });
-    },
+    mutationFn: ({ email, password }: FormValues) =>
+      authApi.apiAuthLoginPost({ email, password }),
     onSuccess: (data) => {
       setAuth(data.data);
-      navigate('/spots');
+      navigate('/');
     },
   });
 

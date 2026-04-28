@@ -8,6 +8,8 @@ public interface ISpotRepository
 
     Task<IReadOnlyList<Spot>> ListAsync(bool onlyActive, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<Spot>> ListByPageAsync(string pageSlug, bool onlyActive, CancellationToken cancellationToken = default);
+
     Task AddAsync(Spot spot, CancellationToken cancellationToken = default);
 
     void Remove(Spot spot);

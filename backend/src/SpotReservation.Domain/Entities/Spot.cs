@@ -13,23 +13,35 @@ public sealed class Spot : Entity
 
     public DateTime CreatedAtUtc { get; private set; }
 
+    public decimal PricePerDay { get; private set; }    
+
     /// <summary>
     /// WGS-84 geographic location of the spot (SRID 4326).
     /// X = longitude, Y = latitude — the NTS convention.
     /// </summary>
-    public Point Location { get; private set; }
+    public Point Location { get; private set; } = null!;
 
-    private Spot(Guid id, string name, string? description, bool isActive, DateTime createdAtUtc, Point location)
+    public IList<Reservation> Reservations { get; private set; } = [];
+
+    public string ReservationPageId { get; private set; } = string.Empty;
+
+    public ReservationPage ReservationPage { get; private set; } = null!;
+
+    private Spot() { Name = string.Empty; }
+
+    private Spot(Guid id, string name, string? description, bool isActive, decimal pricePerDay, DateTime createdAtUtc, Point location, string pageId)
         : base(id)
     {
         Name = name;
         Description = description;
         IsActive = isActive;
+        PricePerDay = pricePerDay;
         CreatedAtUtc = createdAtUtc;
         Location = location;
+        ReservationPageId = pageId;
     }
 
-    public static Spot Create(string name, string? description, DateTime nowUtc, Point location)
+    public static Spot Create(string name, string? description, decimal pricePerDay, DateTime nowUtc, Point location, string pageId)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Spot name is required.", nameof(name));
@@ -39,7 +51,8 @@ public sealed class Spot : Entity
             name.Trim(),
             string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
             isActive: true,
-            DateTime.SpecifyKind(nowUtc, DateTimeKind.Utc), location);
+            pricePerDay,
+            DateTime.SpecifyKind(nowUtc, DateTimeKind.Utc), location, pageId);
     }
 
     public void Rename(string name)

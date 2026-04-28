@@ -22,7 +22,11 @@ builder.Services.AddAuthorization();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.SetIsOriginAllowed(origin =>
+            {
+                var host = new Uri(origin).Host;
+                return host == "localhost" || host.EndsWith(".localhost");
+            })
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials());
@@ -57,5 +61,6 @@ await DatabaseSeeder.SeedAsync(app.Services);
 app.MapAuth();
 app.MapSpots();
 app.MapReservations();
+app.MapReservationPages();
 
 app.Run();

@@ -14,6 +14,11 @@ public static class SpotsEndpoints
             .AllowAnonymous()
             .Produces<IReadOnlyList<SpotDto>>();
 
+        group.MapGet("/by-page/{pageId}", async (string pageId, ISpotService spots, bool onlyActive = true, CancellationToken ct = default) =>
+            Results.Ok(await spots.ListByPageAsync(pageId, onlyActive, ct)))
+            .AllowAnonymous()
+            .Produces<IReadOnlyList<SpotDto>>();
+
         group.MapGet("/{id:guid}", async (Guid id, ISpotService spots, CancellationToken ct) =>
             Results.Ok(await spots.GetAsync(id, ct)))
             .AllowAnonymous()

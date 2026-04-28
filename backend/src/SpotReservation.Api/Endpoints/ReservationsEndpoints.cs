@@ -6,28 +6,32 @@ public static class ReservationsEndpoints
 {
     public static IEndpointRouteBuilder MapReservations(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("api/reservations").WithTags("Reservations").RequireAuthorization();
+        var group = app.MapGroup("api/reservations").WithTags("Reservations");
 
         group.MapPost("/", async (CreateReservationRequest request, IReservationService reservations, CancellationToken ct) =>
         {
             var created = await reservations.CreateAsync(request, ct);
             return Results.Created($"/api/reservations/{created.Id}", created);
         })
+        .AllowAnonymous()
         .Produces<ReservationDto>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status409Conflict);
 
         group.MapGet("/{id:guid}", async (Guid id, IReservationService reservations, CancellationToken ct) =>
             Results.Ok(await reservations.GetAsync(id, ct)))
+            .AllowAnonymous()
             .Produces<ReservationDto>()
             .Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/mine", async (IReservationService reservations, CancellationToken ct) =>
             Results.Ok(await reservations.ListMineAsync(ct)))
-            .Produces<IReadOnlyList<ReservationDto>>();
+            .Produces<IReadOnlyList<ReservationDto>>()
+            .RequireAuthorization();
 
         group.MapGet("/by-spot/{spotId:guid}", async (Guid spotId, IReservationService reservations, CancellationToken ct) =>
             Results.Ok(await reservations.ListForSpotAsync(spotId, ct)))
-            .Produces<IReadOnlyList<ReservationDto>>();
+            .Produces<IReadOnlyList<ReservationDto>>()
+            .RequireAuthorization();
 
         group.MapPost("/{id:guid}/cancel", async (Guid id, IReservationService reservations, CancellationToken ct) =>
         {

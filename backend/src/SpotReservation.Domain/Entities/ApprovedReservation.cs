@@ -1,5 +1,3 @@
-using SpotReservation.Domain.ValueObjects;
-
 namespace SpotReservation.Domain.Entities;
 
 public sealed class ApprovedReservation : Reservation
@@ -9,12 +7,12 @@ public sealed class ApprovedReservation : Reservation
     // EF Core
     private ApprovedReservation() { }
 
-    internal ApprovedReservation(Guid id, Guid spotId, Guid userId, TimeRange period, DateTime createdAtUtc, DateTime approvedAtUtc)
-        : base(id, spotId, userId, period, createdAtUtc)
+    internal ApprovedReservation(PendingReservation pendingReservation, DateTime approvedAtUtc)
+        : base(pendingReservation.Id, pendingReservation.SpotId, pendingReservation.ReservationPageId, pendingReservation.Amount, pendingReservation.Period, pendingReservation.CreatedAtUtc)
     {
         ApprovedAtUtc = approvedAtUtc;
-    }
+    }   
 
     public CancelledReservation Cancel(DateTime nowUtc) =>
-        new(Id, SpotId, UserId, Period, CreatedAtUtc, nowUtc);
+        new(this, nowUtc);
 }

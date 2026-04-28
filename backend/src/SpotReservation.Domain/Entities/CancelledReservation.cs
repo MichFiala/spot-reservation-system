@@ -9,8 +9,14 @@ public sealed class CancelledReservation : Reservation
     // EF Core
     private CancelledReservation() { }
 
-    internal CancelledReservation(Guid id, Guid spotId, Guid userId, TimeRange period, DateTime createdAtUtc, DateTime cancelledAtUtc)
-        : base(id, spotId, userId, period, createdAtUtc)
+    internal CancelledReservation(PendingReservation pendingReservation, DateTime cancelledAtUtc)
+        : base(pendingReservation.Id, pendingReservation.SpotId, pendingReservation.ReservationPageId, pendingReservation.Amount, pendingReservation.Period, pendingReservation.CreatedAtUtc)
+    {
+        CancelledAtUtc = cancelledAtUtc;
+    }
+
+    internal CancelledReservation(ApprovedReservation approvedReservation, DateTime cancelledAtUtc)
+    : base(approvedReservation.Id, approvedReservation.SpotId, approvedReservation.ReservationPageId, approvedReservation.Amount, approvedReservation.Period, approvedReservation.CreatedAtUtc)
     {
         CancelledAtUtc = cancelledAtUtc;
     }

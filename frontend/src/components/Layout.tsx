@@ -24,13 +24,22 @@ export default function Layout() {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="static" elevation={1}>
+      <AppBar
+        position="static"
+        elevation={0}
+        sx={{
+          bgcolor: 'background.default',
+          color: 'text.primary',
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
         <Toolbar>
           <Typography
             variant="h6"
             component={RouterLink}
             to="/"
-            sx={{ flexGrow: 1, color: 'inherit', textDecoration: 'none', fontWeight: 700 }}
+            sx={{ flexGrow: 1, color: 'text.primary', textDecoration: 'none', fontWeight: 700 }}
           >
             ReserveSpot
           </Typography>

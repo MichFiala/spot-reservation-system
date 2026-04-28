@@ -31,6 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ISpotRepository, SpotRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
+        services.AddScoped<IReservationPageRepository, ReservationPageRepository>();
 
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();

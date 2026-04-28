@@ -29,14 +29,23 @@ namespace SpotReservation.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReservationPageId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("SpotId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("VariableSymbol")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("status")
                         .IsRequired()
@@ -45,15 +54,38 @@ namespace SpotReservation.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SpotId");
+                    b.HasIndex("ReservationPageId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("SpotId");
 
                     b.ToTable("reservations", (string)null);
 
                     b.HasDiscriminator<string>("status").HasValue("Reservation");
 
                     b.UseTphMappingStrategy();
+                });
+
+            modelBuilder.Entity("SpotReservation.Domain.Entities.ReservationPage", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TermsAndConditionsUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("reservation_pages", (string)null);
                 });
 
             modelBuilder.Entity("SpotReservation.Domain.Entities.Spot", b =>
@@ -80,9 +112,18 @@ namespace SpotReservation.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<decimal>("PricePerDay")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ReservationPageId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Name");
+
+                    b.HasIndex("ReservationPageId");
 
                     b.ToTable("spots", (string)null);
                 });
@@ -149,15 +190,15 @@ namespace SpotReservation.Infrastructure.Migrations
 
             modelBuilder.Entity("SpotReservation.Domain.Entities.Reservation", b =>
                 {
-                    b.HasOne("SpotReservation.Domain.Entities.Spot", null)
+                    b.HasOne("SpotReservation.Domain.Entities.ReservationPage", "ReservationPage")
                         .WithMany()
-                        .HasForeignKey("SpotId")
+                        .HasForeignKey("ReservationPageId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SpotReservation.Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
+                    b.HasOne("SpotReservation.Domain.Entities.Spot", "Spot")
+                        .WithMany("Reservations")
+                        .HasForeignKey("SpotId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -188,6 +229,127 @@ namespace SpotReservation.Infrastructure.Migrations
 
                     b.Navigation("Period")
                         .IsRequired();
+
+                    b.Navigation("ReservationPage");
+
+                    b.Navigation("Spot");
+                });
+
+            modelBuilder.Entity("SpotReservation.Domain.Entities.ReservationPage", b =>
+                {
+                    b.OwnsOne("SpotReservation.Domain.Entities.ContactInformations", "ContactInformations", b1 =>
+                        {
+                            b1.Property<string>("ReservationPageId")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Email")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)");
+
+                            b1.Property<string>("OpeningHoursJson")
+                                .HasColumnType("text")
+                                .HasColumnName("contact_opening_hours_json");
+
+                            b1.Property<string>("Phone")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("character varying(50)");
+
+                            b1.HasKey("ReservationPageId");
+
+                            b1.ToTable("reservation_pages");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ReservationPageId");
+                        });
+
+                    b.OwnsOne("SpotReservation.Domain.Entities.MapOptions", "MapOptions", b1 =>
+                        {
+                            b1.Property<string>("ReservationPageId")
+                                .HasColumnType("text");
+
+                            b1.Property<Point>("Center")
+                                .HasColumnType("geometry(Point, 4326)")
+                                .HasColumnName("map_center");
+
+                            b1.Property<int>("MaxZoom")
+                                .HasColumnType("integer")
+                                .HasColumnName("map_max_zoom");
+
+                            b1.Property<int>("MinZoom")
+                                .HasColumnType("integer")
+                                .HasColumnName("map_min_zoom");
+
+                            b1.Property<int>("Zoom")
+                                .HasColumnType("integer")
+                                .HasColumnName("map_zoom");
+
+                            b1.HasKey("ReservationPageId");
+
+                            b1.ToTable("reservation_pages");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ReservationPageId");
+                        });
+
+                    b.OwnsOne("SpotReservation.Domain.Entities.OwnerPayementInformations", "PayementInformations", b1 =>
+                        {
+                            b1.Property<string>("ReservationPageId")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("character varying(3)");
+
+                            b1.Property<string>("Iban")
+                                .IsRequired()
+                                .HasMaxLength(34)
+                                .HasColumnType("character varying(34)");
+
+                            b1.HasKey("ReservationPageId");
+
+                            b1.ToTable("reservation_pages");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ReservationPageId");
+                        });
+
+                    b.Navigation("ContactInformations")
+                        .IsRequired();
+
+                    b.Navigation("MapOptions")
+                        .IsRequired();
+
+                    b.Navigation("PayementInformations")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("SpotReservation.Domain.Entities.Spot", b =>
+                {
+                    b.HasOne("SpotReservation.Domain.Entities.ReservationPage", "ReservationPage")
+                        .WithMany("Spots")
+                        .HasForeignKey("ReservationPageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ReservationPage");
+                });
+
+            modelBuilder.Entity("SpotReservation.Domain.Entities.ReservationPage", b =>
+                {
+                    b.Navigation("Spots");
+                });
+
+            modelBuilder.Entity("SpotReservation.Domain.Entities.Spot", b =>
+                {
+                    b.Navigation("Reservations");
                 });
 #pragma warning restore 612, 618
         }

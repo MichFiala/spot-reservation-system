@@ -19,6 +19,7 @@ internal sealed class SpotConfiguration : IEntityTypeConfiguration<Spot>
         builder.Property(s => s.Description).HasMaxLength(2000);
 
         builder.Property(s => s.IsActive).IsRequired();
+        builder.Property(s => s.PricePerDay).HasColumnType("decimal(18,2)").IsRequired();
         builder.Property(s => s.CreatedAtUtc).IsRequired();
 
         builder.Property(s => s.Location)
@@ -26,5 +27,11 @@ internal sealed class SpotConfiguration : IEntityTypeConfiguration<Spot>
             .HasColumnType("geometry(Point, 4326)")
             .IsRequired(false);
 
+        builder.HasOne(s => s.ReservationPage)
+               .WithMany(rp => rp.Spots)
+               .HasForeignKey(s => s.ReservationPageId)
+               .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(s => s.ReservationPageId);
     }
 }

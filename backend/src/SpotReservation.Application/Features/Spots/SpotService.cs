@@ -13,7 +13,7 @@ internal sealed class SpotService(
     public async Task<IReadOnlyList<SpotDto>> ListAsync(bool onlyActive, CancellationToken cancellationToken = default)
     {
         var result = await spots.ListAsync(onlyActive, cancellationToken);
-        return [.. result.Select(ToDto)];
+        return [.. result.Select(s => ToDto(s))];
     }
 
     public async Task<SpotDto> GetAsync(Guid id, CancellationToken cancellationToken = default)
@@ -27,7 +27,7 @@ internal sealed class SpotService(
         if (string.IsNullOrWhiteSpace(request.Name))
             throw new ValidationException("Spot name is required.");
 
-        var spot = Spot.Create(request.Name, request.Description, clock.UtcNow, request.Location);
+        var spot = Spot.Create(request.Name, request.Description, request.PricePerDay, clock.UtcNow, request.Location, request.PageId);
 
         await spots.AddAsync(spot, cancellationToken);
         await uow.SaveChangesAsync(cancellationToken);
@@ -63,11 +63,38 @@ internal sealed class SpotService(
         return spot ?? throw new NotFoundException(nameof(Spot), id);
     }
 
-    private static SpotDto ToDto(Spot spot) => new(
+    public async Task<IReadOnlyList<SpotDto>> ListByPageAsync(string pageId, bool onlyActive, CancellationToken cancellationToken = default)
+    {
+        var result = await spots.ListByPageAsync(pageId, onlyActive, cancellationToken);
+        return [.. result.Select(s => ToDto(s))];
+    }
+
+    internal static SpotDto ToDto(Spot spot) => new(
         spot.Id,
         spot.Name,
         spot.Description,
         spot.IsActive,
+        spot.PricePerDay,
         spot.CreatedAtUtc,
-        spot.Location);
+        spot.Location,
+        spot.ReservationPageId,
+        spot.Reservations
+            .Where(r => r is PendingReservation or ApprovedReservation)
+            .SelectMany(r => GenerateDateRange(r.Period.StartUtc, r.Period.EndUtc)).ToHashSet());
+
+
+    public static List<DateOnly> GenerateDateRange(DateTime from, DateTime to)
+    {
+        if (from > to)
+            throw new ArgumentException("From musí být menší nebo rovno To");
+
+        var dates = new List<DateOnly>();
+
+        for (var date = from; date <= to; date = date.AddDays(1))
+        {
+            dates.Add(DateOnly.FromDateTime(date));
+        }
+
+        return dates;
+    }
 }

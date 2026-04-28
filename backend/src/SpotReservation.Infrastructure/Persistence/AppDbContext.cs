@@ -16,6 +16,8 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
 
     public DbSet<Reservation> Reservations => Set<Reservation>();
 
+    public DbSet<ReservationPage> ReservationPages => Set<ReservationPage>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

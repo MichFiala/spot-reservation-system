@@ -6,13 +6,18 @@ public sealed record SpotDto(
     string Name,
     string? Description,
     bool IsActive,
+    decimal PricePerDay,
     DateTime CreatedAtUtc,
-    Point? Location);
+    Point? Location,
+    string PageId,
+    IReadOnlyCollection<DateOnly> OccupiedDates);
 
 public sealed record CreateSpotRequest(
     string Name,
     string? Description,
-    Point Location);
+    decimal PricePerDay,
+    Point Location,
+    string PageId);
 
 public sealed record UpdateSpotRequest(
     string Name,
