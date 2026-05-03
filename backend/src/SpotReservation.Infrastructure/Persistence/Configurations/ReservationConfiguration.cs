@@ -36,14 +36,13 @@ internal sealed class ReservationConfiguration : IEntityTypeConfiguration<Reserv
         builder.HasOne(r => r.Spot)
             .WithMany(s => s.Reservations)
             .HasForeignKey(r => r.SpotId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(r => r.ReservationPage)
             .WithMany()
             .HasForeignKey(r => r.ReservationPageId)
             .HasPrincipalKey(rp => rp.Id)
-            .OnDelete(DeleteBehavior.Restrict);
-
+            .OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(r => r.SpotId);
         // builder.HasIndex(r => r.UserId);
         builder.HasIndex(r => r.ReservationPageId);

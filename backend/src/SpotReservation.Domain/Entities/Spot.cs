@@ -23,6 +23,8 @@ public sealed class Spot : Entity
 
     public IList<Reservation> Reservations { get; private set; } = [];
 
+    public IList<SpotPhoto> Photos { get; private set; } = [];
+
     public string ReservationPageId { get; private set; } = string.Empty;
 
     public ReservationPage ReservationPage { get; private set; } = null!;

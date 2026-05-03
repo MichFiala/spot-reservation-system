@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.minio.rule=Host(`minio.tenspot.cz`)"
+      - "traefik.http.routers.minio.entrypoints=web"
+      - "traefik.http.routers.minio.service=minio-service"
+      - "traefik.http.services.minio-service.loadbalancer.server.port=9000"
+
+  app:
+    image: michfiala/tenspot-application:1.0.19
+    ports:
+      - "4040:4040"
+    environment:
+      ConnectionStrings__Default: ${CONNECTION_STRING}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
+      ASPNETCORE_HTTP_PORTS: 4040
+      Minio__Endpoint: minio:9000
+      Minio__AccessKey: ${MINIO_ACCESS_KEY}
+      Minio__SecretKey: ${MINIO_SECRET_KEY}
+      Minio__BucketName: spot-photos
+      Minio__PublicUrl: ${MINIO_PUBLIC_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tenspot.rule=HostRegexp(`[a-z0-9-]+\\.tenspot\\.cz`)"
+      - "traefik.http.routers.tenspot.entrypoints=web"
+      - "traefik.http.routers.tenspot.service=tenspot-service"
+      - "traefik.http.services.tenspot-service.loadbalancer.server.port=4040"
+
+volumes:
+  db-data:
+  minio-data:

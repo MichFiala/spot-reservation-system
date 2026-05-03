@@ -7,6 +7,8 @@ export * from './payment-info-dto';
 export * from './register-request';
 export * from './reservation-dto';
 export * from './reservation-page-dto';
+export * from './reservation-page-summary-dto';
 export * from './spot-dto';
+export * from './spot-photo-dto';
 export * from './update-reservation-page-request';
 export * from './update-spot-request';

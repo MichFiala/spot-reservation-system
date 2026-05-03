@@ -24,10 +24,12 @@ export interface UpdateReservationPageRequest {
     'mapMinZoom': number;
     'mapMaxZoom': number;
     'pricePerDay': number;
-    'iban': string | null;
+    'iban': string;
+    'currency': string;
     'termsAndConditionsUrl': string | null;
     'openingHoursJson': string | null;
-    'contactEmail': string | null;
-    'contactPhone': string | null;
+    'contactName': string;
+    'contactEmail': string;
+    'contactPhone': string;
 }
 

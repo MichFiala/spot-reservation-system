@@ -5,11 +5,10 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import { theme } from './utils/theme';
 import { getTenantFromSubdomain } from './utils/tenant';
 import Layout from './components/Layout';
-import LoginPage from './features/auth/LoginPage';
-import RegisterPage from './features/auth/RegisterPage';
 import ReservationPage from './features/reservation-page/ReservationPage';
-import ReservationPagesAdmin from './features/admin/Pages';
 import LandingPage from './features/landing/LandingPage';
+import AdminDashboard from './features/admin/AdminDashboard';
+import LoginPage from './features/auth/LoginPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,7 +19,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const slug = getTenantFromSubdomain();
+const id = getTenantFromSubdomain();
 
 export default function App() {
   return (
@@ -28,20 +27,18 @@ export default function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <BrowserRouter>
-          {slug ? (
+          {id ? (
             <Routes>
               <Route element={<Layout />}>
-                <Route path="*" element={<ReservationPage slug={slug} />} />
+                <Route path="*" element={<ReservationPage id={id} />} />
               </Route>
             </Routes>
           ) : (
             <Routes>
               <Route element={<Layout />}>
                 <Route index element={<LandingPage />} />
-                <Route path="reserve" element={<ReservationPage />} />
-                <Route path="/reservation-pages/:slug" element={<ReservationPagesAdmin />} />
-                <Route path="login" element={<LoginPage />} />
-                <Route path="register" element={<RegisterPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/admin" element={<AdminDashboard />} />
               </Route>
             </Routes>
           )}

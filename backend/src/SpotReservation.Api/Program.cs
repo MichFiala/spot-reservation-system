@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Http.Json;
-using Microsoft.OpenApi.Models;
 using NetTopologySuite.IO.Converters;
 using SpotReservation.Api.Endpoints;
 using SpotReservation.Api.Middleware;
@@ -19,17 +18,25 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddJwtBearerAuth(builder.Configuration);
 builder.Services.AddAuthorization();
 
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("Frontend", policy =>
-        policy.SetIsOriginAllowed(origin =>
-            {
-                var host = new Uri(origin).Host;
-                return host == "localhost" || host.EndsWith(".localhost");
-            })
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials());
+    options.AddPolicy("CorsPolicy", options =>
+    {
+        if (builder.Environment.IsDevelopment())
+            options.WithOrigins("http://*.localhost:5173", "http://localhost:5173")
+                   .SetIsOriginAllowedToAllowWildcardSubdomains()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .AllowCredentials();
+        else
+            options.WithOrigins("http://*.localhost:4040", "https://*.tenspot.cz")
+                   .SetIsOriginAllowedToAllowWildcardSubdomains()
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .AllowCredentials();
+    }
+);
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -44,23 +51,34 @@ builder.Services.Configure<JsonOptions>(options =>
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
-app.UseCors("Frontend");
+
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+await DatabaseSeeder.SeedAsync(app.Services);
 
-app.UseHttpsRedirection();
+app.UseCors("CorsPolicy");
+
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-await DatabaseSeeder.SeedAsync(app.Services);
 
 app.MapAuth();
 app.MapSpots();
 app.MapReservations();
 app.MapReservationPages();
+app.MapSpotPhotos();
+
+Console.WriteLine("Starting application...");
 
 app.Run();

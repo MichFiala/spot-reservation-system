@@ -26,12 +26,43 @@ import type { CreateReservationPageRequest } from '../model';
 // @ts-ignore
 import type { ReservationPageDto } from '../model';
 // @ts-ignore
+import type { ReservationPageSummaryDto } from '../model';
+// @ts-ignore
 import type { UpdateReservationPageRequest } from '../model';
 /**
  * ReservationPagesApi - axios parameter creator
  */
 export const ReservationPagesApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiReservationPagesGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/reservation-pages`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @param {string} id 
@@ -148,6 +179,17 @@ export const ReservationPagesApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiReservationPagesGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ReservationPageSummaryDto>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiReservationPagesGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ReservationPagesApi.apiReservationPagesGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -194,6 +236,14 @@ export const ReservationPagesApiFactory = function (configuration?: Configuratio
     return {
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiReservationPagesGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<ReservationPageSummaryDto>> {
+            return localVarFp.apiReservationPagesGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -227,6 +277,15 @@ export const ReservationPagesApiFactory = function (configuration?: Configuratio
  * ReservationPagesApi - object-oriented interface
  */
 export class ReservationPagesApi extends BaseAPI {
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public apiReservationPagesGet(options?: RawAxiosRequestConfig) {
+        return ReservationPagesApiFp(this.configuration).apiReservationPagesGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @param {string} id 

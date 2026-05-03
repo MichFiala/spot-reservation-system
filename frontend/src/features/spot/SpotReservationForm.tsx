@@ -1,10 +1,7 @@
 import {
+  Alert,
   Box,
   Button,
-  Card,
-  CardActions,
-  CardContent,
-  Chip,
   Divider,
   Stack,
   Step,
@@ -48,7 +45,11 @@ const contactSchema = z.object({
 
 type ContactFormValues = z.infer<typeof contactSchema>;
 
-export function ReservationForm({ selectedSpot }: { selectedSpot: SpotDto }) {
+export function SpotReservationForm({
+  selectedSpot,
+}: {
+  selectedSpot: SpotDto;
+}) {
   const [rangeStart, setRangeStart] = useState<Dayjs | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Dayjs | null>(null);
   const queryClient = useQueryClient();
@@ -80,7 +81,9 @@ export function ReservationForm({ selectedSpot }: { selectedSpot: SpotDto }) {
   const ReservationDay = (props: PickerDayProps) => {
     const { day, outsideCurrentMonth, ...other } = props;
 
-    const isBooked = selectedSpot.occupiedDates?.some((d) => dayjs(d).isSame(day, "day"));
+    const isBooked = selectedSpot.occupiedDates?.some((d) =>
+      dayjs(d).isSame(day, "day"),
+    );
     const isPast = day.isBefore(dayjs(), "day");
     const isStart = rangeStart?.isSame(day, "day") ?? false;
     const isEnd = rangeEnd?.isSame(day, "day") ?? false;
@@ -137,7 +140,7 @@ export function ReservationForm({ selectedSpot }: { selectedSpot: SpotDto }) {
         }}
       />
     );
-  }
+  };
 
   const createReservation = useMutation({
     mutationFn: async () => {
@@ -214,61 +217,34 @@ export function ReservationForm({ selectedSpot }: { selectedSpot: SpotDto }) {
     }
   };
   return (
-    <Card
+    <Stack
       sx={{
-        position: "absolute",
-        top: 16,
-        right: 16,
-        width: 380,
-        maxHeight: "calc(100% - 32px)",
-        overflowY: "auto",
-        zIndex: 1000,
-        boxShadow: 6,
+        mt: 1,
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 1,
+        p: 1.5,
       }}
     >
-      <CardContent>
-        {/* Header */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            mb: 2,
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            {selectedSpot.name}
-          </Typography>
-          <Chip
-            label={selectedSpot.isActive ? "Aktivní" : "Neaktivní"}
-            color={selectedSpot.isActive ? "success" : "default"}
-            size="small"
-          />
-        </Box>
+      {/* Stepper */}
+      <Stepper nonLinear activeStep={step} alternativeLabel sx={{ mb: 1 }}>
+        {STEP_LABELS.map((label, index) => (
+          <Step key={label} completed={isStepComplete(index)}>
+            <StepButton
+              color="inherit"
+              onClick={() => canGoToStep(index) && setStep(index)}
+              disabled={!canGoToStep(index)}
+            >
+              {label}
+            </StepButton>
+          </Step>
+        ))}
+      </Stepper>
 
-        {/* Stepper */}
-        <Stepper nonLinear activeStep={step} alternativeLabel sx={{ mb: 2 }}>
-          {STEP_LABELS.map((label, index) => (
-            <Step key={label} completed={isStepComplete(index)}>
-              <StepButton
-                color="inherit"
-                onClick={() => canGoToStep(index) && setStep(index)}
-                disabled={!canGoToStep(index)}
-              >
-                {label}
-              </StepButton>
-            </Step>
-          ))}
-        </Stepper>
-
+      <Stack sx={{ flexGrow: 1 }} spacing={2}>
         {/* Step 0 — Date picker */}
         {step === 0 && (
           <>
-            {selectedSpot.description && (
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                {selectedSpot.description}
-              </Typography>
-            )}
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DateCalendar
                 onChange={handleDayClick}
@@ -281,7 +257,7 @@ export function ReservationForm({ selectedSpot }: { selectedSpot: SpotDto }) {
               </Typography>
             )}
             {rangeStart && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
+              <Typography variant="body2">
                 {rangeStart.format("DD.MM.YYYY")}
                 {rangeEnd
                   ? ` – ${rangeEnd.format("DD.MM.YYYY")} (${totalDays} ${totalDays === 1 ? "den" : totalDays < 5 ? "dny" : "dní"})`
@@ -289,7 +265,7 @@ export function ReservationForm({ selectedSpot }: { selectedSpot: SpotDto }) {
               </Typography>
             )}
             {rangeStart && rangeEnd && (
-              <Typography variant="body2" sx={{ fontWeight: 600, mt: 0.5 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 Cena: {totalPrice} Kč
               </Typography>
             )}
@@ -377,6 +353,12 @@ export function ReservationForm({ selectedSpot }: { selectedSpot: SpotDto }) {
                 Celkem: {totalPrice} Kč
               </Typography>
             </Stack>
+            {createReservation.isError && (
+              <Alert severity="error">
+                Rezervace se nezdařila. Zvolený termín je již obsazený nebo
+                došlo k chybě. Zkuste prosím jiný termín.
+              </Alert>
+            )}
           </Stack>
         )}
 
@@ -390,10 +372,13 @@ export function ReservationForm({ selectedSpot }: { selectedSpot: SpotDto }) {
               component="img"
               src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
                 buildSpdString(
-                  createReservation.data?.data.paymentInfoDto.iban || "CZ0000000000000000000000",
-                  createReservation.data?.data.paymentInfoDto.amount || totalPrice,
+                  createReservation.data?.data.paymentInfoDto.iban ||
+                    "CZ0000000000000000000000",
+                  createReservation.data?.data.paymentInfoDto.amount ||
+                    totalPrice,
                   createReservation.data?.data.paymentInfoDto.currency || "CZK",
-                  createReservation.data?.data.paymentInfoDto.variableSymbol || "0000000000",
+                  createReservation.data?.data.paymentInfoDto.variableSymbol ||
+                    "0000000000",
                   `Rezervace ${selectedSpot.name}`,
                 ),
               )}`}
@@ -403,24 +388,41 @@ export function ReservationForm({ selectedSpot }: { selectedSpot: SpotDto }) {
             <Divider sx={{ width: "100%" }} />
             <Stack spacing={0.5} sx={{ width: "100%" }}>
               <Typography variant="body2">
-                <strong>Variabilní symbol:</strong> {createReservation.data?.data.paymentInfoDto.variableSymbol || "0000000000"}
+                <strong>Variabilní symbol:</strong>{" "}
+                {createReservation.data?.data.paymentInfoDto.variableSymbol ||
+                  "0000000000"}
               </Typography>
               <Typography variant="body2">
-                <strong>Částka:</strong> {createReservation.data?.data.paymentInfoDto.amount || totalPrice} Kč
+                <strong>Částka:</strong>{" "}
+                {createReservation.data?.data.paymentInfoDto.amount ||
+                  totalPrice}{" "}
+                Kč
               </Typography>
               <Typography variant="body2">
-                <strong>IBAN:</strong> {createReservation.data?.data.paymentInfoDto.iban || "CZ0000000000000000000000"}
+                <strong>IBAN:</strong>{" "}
+                {createReservation.data?.data.paymentInfoDto.iban ||
+                  "CZ0000000000000000000000"}
               </Typography>
               <Typography variant="body2">
-                <strong>Měna:</strong> {createReservation.data?.data.paymentInfoDto.currency || "CZK"}
+                <strong>Měna:</strong>{" "}
+                {createReservation.data?.data.paymentInfoDto.currency || "CZK"}
               </Typography>
             </Stack>
           </Stack>
         )}
-      </CardContent>
+      </Stack>
 
       {/* Actions */}
-      <CardActions sx={{ px: 2, pb: 2 }}>
+      <Stack direction="row" spacing={1} sx={{ m: 1 }}>
+        {step !== 0 && step !== 3 && (
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            onClick={() => setStep(step - 1)}
+          >
+            Zpět
+          </Button>
+        )}
         {step === 0 && (
           <Button
             variant="contained"
@@ -432,56 +434,39 @@ export function ReservationForm({ selectedSpot }: { selectedSpot: SpotDto }) {
           </Button>
         )}
         {step === 1 && (
-          <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-            <Button
-              variant="outlined"
-              startIcon={<ArrowBackIcon />}
-              onClick={() => setStep(0)}
-            >
-              Zpět
-            </Button>
-            <Button
-              variant="contained"
-              fullWidth
-              type="submit"
-              form="contact-form"
-            >
-              Pokračovat
-            </Button>
-          </Stack>
+          <Button
+            variant="contained"
+            fullWidth
+            type="submit"
+            form="contact-form"
+          >
+            Pokračovat
+          </Button>
         )}
+
         {step === 2 && (
-          <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-            <Button
-              variant="outlined"
-              startIcon={<ArrowBackIcon />}
-              onClick={() => setStep(1)}
-            >
-              Zpět
-            </Button>
-            <Button
-              variant="contained"
-              fullWidth
-              disabled={createReservation.isPending}
-              onClick={() => {
-                createReservation.mutate(undefined, {
-                  onSuccess: () => {
-                    setConfirmed(true);
-                    setStep(3);
-                  },
-                });
-              }}
-            >
-              {createReservation.isPending ? "Odesílám…" : "Potvrdit rezervaci"}
-            </Button>
-          </Stack>
+          <Button
+            variant="contained"
+            fullWidth
+            disabled={createReservation.isPending}
+            onClick={() => {
+              createReservation.mutate(undefined, {
+                onSuccess: () => {
+                  setConfirmed(true);
+                  setStep(3);
+                },
+              });
+            }}
+          >
+            {createReservation.isPending ? "Odesílám…" : "Potvrdit rezervaci"}
+          </Button>
         )}
         {step === 3 && (
           <Button variant="contained" fullWidth onClick={handleResetFlow}>
             Hotovo
           </Button>
         )}
-      </CardActions>
-    </Card>
+      </Stack>
+    </Stack>
   );
 }

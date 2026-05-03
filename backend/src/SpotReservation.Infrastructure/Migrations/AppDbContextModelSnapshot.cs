@@ -128,6 +128,32 @@ namespace SpotReservation.Infrastructure.Migrations
                     b.ToTable("spots", (string)null);
                 });
 
+            modelBuilder.Entity("SpotReservation.Domain.Entities.SpotPhoto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ObjectKey")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("SpotId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UploadedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SpotId");
+
+                    b.ToTable("spot_photos", (string)null);
+                });
+
             modelBuilder.Entity("SpotReservation.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -193,13 +219,13 @@ namespace SpotReservation.Infrastructure.Migrations
                     b.HasOne("SpotReservation.Domain.Entities.ReservationPage", "ReservationPage")
                         .WithMany()
                         .HasForeignKey("ReservationPageId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("SpotReservation.Domain.Entities.Spot", "Spot")
                         .WithMany("Reservations")
                         .HasForeignKey("SpotId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.OwnsOne("SpotReservation.Domain.ValueObjects.TimeRange", "Period", b1 =>
@@ -321,14 +347,12 @@ namespace SpotReservation.Infrastructure.Migrations
                                 .HasForeignKey("ReservationPageId");
                         });
 
-                    b.Navigation("ContactInformations")
-                        .IsRequired();
+                    b.Navigation("ContactInformations");
 
                     b.Navigation("MapOptions")
                         .IsRequired();
 
-                    b.Navigation("PayementInformations")
-                        .IsRequired();
+                    b.Navigation("PayementInformations");
                 });
 
             modelBuilder.Entity("SpotReservation.Domain.Entities.Spot", b =>
@@ -336,10 +360,21 @@ namespace SpotReservation.Infrastructure.Migrations
                     b.HasOne("SpotReservation.Domain.Entities.ReservationPage", "ReservationPage")
                         .WithMany("Spots")
                         .HasForeignKey("ReservationPageId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("ReservationPage");
+                });
+
+            modelBuilder.Entity("SpotReservation.Domain.Entities.SpotPhoto", b =>
+                {
+                    b.HasOne("SpotReservation.Domain.Entities.Spot", "Spot")
+                        .WithMany("Photos")
+                        .HasForeignKey("SpotId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Spot");
                 });
 
             modelBuilder.Entity("SpotReservation.Domain.Entities.ReservationPage", b =>
@@ -349,6 +384,8 @@ namespace SpotReservation.Infrastructure.Migrations
 
             modelBuilder.Entity("SpotReservation.Domain.Entities.Spot", b =>
                 {
+                    b.Navigation("Photos");
+
                     b.Navigation("Reservations");
                 });
 #pragma warning restore 612, 618

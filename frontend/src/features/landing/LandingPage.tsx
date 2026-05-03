@@ -13,6 +13,7 @@ import DashboardCustomizeIcon from "@mui/icons-material/DashboardCustomize";
 import PeopleIcon from "@mui/icons-material/People";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlined";
+import { useEffect } from "react";
 
 const features = [
   {
@@ -90,6 +91,10 @@ const plans = [
 ];
 
 export default function LandingPage() {
+  useEffect(() => {
+    document.title = "Tenspot - Rezervační systém pro vaše podnikání";
+  }, []);
+
   return (
     <Box>
       {/* Hero */}
@@ -118,7 +123,7 @@ export default function LandingPage() {
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={2}
-            justifyContent="center"
+            sx={{justifyContent: "center"}}
           >
             <Button
               variant="contained"

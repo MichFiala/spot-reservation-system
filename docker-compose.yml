@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+  app:
+    image: michfiala/tenspot-application:latest
+    ports:
+      - "4040:8080"
+    environment:
+      ConnectionStrings__Default: ${CONNECTION_STRING}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
+      Minio__Endpoint: minio:9000
+      Minio__AccessKey: ${MINIO_ACCESS_KEY:-minioadmin}
+      Minio__SecretKey: ${MINIO_SECRET_KEY:-minioadmin}
+      Minio__BucketName: spot-photos
+      Minio__PublicUrl: ${MINIO_PUBLIC_URL:-http://localhost:9000}
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  minio-data:

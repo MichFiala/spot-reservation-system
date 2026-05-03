@@ -12,8 +12,10 @@ public sealed record ReservationPageDto(
     int MapMinZoom,
     int MapMaxZoom,
     string? Iban,
+    string? Currency,
     string? TermsAndConditionsUrl,
     string? OpeningHoursJson,
+    string? ContactName,
     string? ContactEmail,
     string? ContactPhone,
     IReadOnlyCollection<SpotDto> Spots);
@@ -28,11 +30,15 @@ public sealed record UpdateReservationPageRequest(
     int MapMinZoom,
     int MapMaxZoom,
     decimal PricePerDay,
-    string? Iban,
+    string Iban,
+    string Currency,
     string? TermsAndConditionsUrl,
     string? OpeningHoursJson,
-    string? ContactEmail,
-    string? ContactPhone);
+    string ContactName,
+    string ContactEmail,
+    string ContactPhone);
+
+public sealed record ReservationPageSummaryDto(string Id, string Name);
 
 public sealed record CreateReservationPageRequest(
     string Id,
@@ -41,10 +47,4 @@ public sealed record CreateReservationPageRequest(
     Point? MapCenter,
     int MapZoom,
     int MapMinZoom,
-    int MapMaxZoom,
-    string? ContactName,
-    string? ContactEmail,
-    string? ContactPhone,
-    string? OpeningHoursJson,
-    string Iban,
-    string Currency);
+    int MapMaxZoom);

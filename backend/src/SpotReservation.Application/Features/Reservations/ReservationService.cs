@@ -110,7 +110,7 @@ internal sealed class ReservationService(
         reservation.Period.EndUtc,
         reservation.GetType().Name.Replace("Reservation", string.Empty),
         new PaymentInfoDto(
-            reservation.Spot.ReservationPage.PayementInformations.Iban,
+            reservation.Spot.ReservationPage.PayementInformations!.Iban,
             reservation.Amount,
             reservation.VariableSymbol,
             reservation.Spot.ReservationPage.PayementInformations.Currency

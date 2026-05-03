@@ -30,7 +30,7 @@ internal sealed class SpotConfiguration : IEntityTypeConfiguration<Spot>
         builder.HasOne(s => s.ReservationPage)
                .WithMany(rp => rp.Spots)
                .HasForeignKey(s => s.ReservationPageId)
-               .OnDelete(DeleteBehavior.Restrict);
+               .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(s => s.ReservationPageId);
     }

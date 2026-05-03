@@ -7,9 +7,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using SpotReservation.Application.Abstractions;
 using SpotReservation.Domain.Repositories;
+using Minio;
 using SpotReservation.Infrastructure.Identity;
 using SpotReservation.Infrastructure.Persistence;
 using SpotReservation.Infrastructure.Persistence.Repositories;
+using SpotReservation.Infrastructure.Storage;
 using SpotReservation.Infrastructure.Time;
 
 namespace SpotReservation.Infrastructure;
@@ -32,6 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ISpotRepository, SpotRepository>();
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IReservationPageRepository, ReservationPageRepository>();
+        services.AddScoped<ISpotPhotoRepository, SpotPhotoRepository>();
 
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
@@ -46,6 +49,27 @@ public static class ServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
+
+        services.AddOptions<MinioOptions>()
+            .Bind(configuration.GetSection(MinioOptions.SectionName))
+            .ValidateOnStart();
+
+        services.AddSingleton<IMinioClient>(sp =>
+        {
+            var minioOpts = configuration.GetSection(MinioOptions.SectionName).Get<MinioOptions>()
+                ?? new MinioOptions();
+
+            var client = new MinioClient()
+                .WithEndpoint(minioOpts.Endpoint)
+                .WithCredentials(minioOpts.AccessKey, minioOpts.SecretKey);
+
+            if (minioOpts.UseSsl)
+                client = client.WithSSL();
+
+            return client.Build();
+        });
+
+        services.AddSingleton<IFileStorage, MinioFileStorage>();
 
         return services;
     }

@@ -9,7 +9,7 @@ public sealed partial class ReservationPage : Entity
     [GeneratedRegex("^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$")]
     private static partial Regex SlugPattern();
 
-    public new string Id {get; set;}
+    public new string Id { get; set; }
 
     public string Name { get; private set; }
 
@@ -17,39 +17,37 @@ public sealed partial class ReservationPage : Entity
 
     public MapOptions MapOptions { get; private set; } = null!;
 
-    public OwnerPayementInformations PayementInformations { get; private set; } = null!;
+    public OwnerPayementInformations? PayementInformations { get; private set; }
 
     public string? TermsAndConditionsUrl { get; private set; }
 
-    public ContactInformations ContactInformations { get; private set; } = null!;
+    public ContactInformations? ContactInformations { get; private set; }
 
     public IList<Spot> Spots { get; private set; } = [];
 
-    private ReservationPage() { Id = string.Empty; Name = string.Empty; }
+    private ReservationPage()
+    {
+        Id = string.Empty;
+        Name = string.Empty;
+    }
 
     private ReservationPage(
         string id,
         string name,
         string? description,
-        ContactInformations contactInformations,
-        MapOptions mapOptions,
-        OwnerPayementInformations payementInformations)
+        MapOptions mapOptions)
     {
         Id = id;
         Name = name;
         Description = description;
         MapOptions = mapOptions;
-        PayementInformations = payementInformations;
-        ContactInformations = contactInformations;
     }
 
     public static ReservationPage Create(
         string id,
         string name,
         string? description,
-        ContactInformations contactInformations,
-        MapOptions mapOptions,
-        OwnerPayementInformations payementInformations)
+        MapOptions mapOptions)
     {
         ValidateId(id);
 
@@ -60,10 +58,25 @@ public sealed partial class ReservationPage : Entity
             id.Trim(),
             name.Trim(),
             description?.Trim(),
-            contactInformations,
-            mapOptions,
-            payementInformations);
+            mapOptions);
     }
+
+    public static ReservationPage Create(
+        string id,
+        string name,
+        string? description,
+        MapOptions mapOptions,
+        ContactInformations contactInformations,
+        OwnerPayementInformations ownerPayementInformations)
+    {
+        var reservationPage = Create(id, name, description, mapOptions);
+
+        reservationPage.ContactInformations = contactInformations;
+        reservationPage.PayementInformations = ownerPayementInformations;
+
+        return reservationPage;
+    }
+
 
     public void UpdateId(string id)
     {
@@ -94,30 +107,23 @@ public sealed partial class ReservationPage : Entity
         MapOptions = mapOptions;
     }
 
-    public void UpdatePaymentInformations(string? iban, string? currency)
+    public void UpdatePaymentInformations(string iban, string currency)
     {
-        if(string.IsNullOrEmpty(iban) && string.IsNullOrEmpty(currency))
+        if (string.IsNullOrEmpty(iban) || string.IsNullOrEmpty(currency))
             return;
 
-        if(string.IsNullOrWhiteSpace(currency) || currency.Length != 3)
+        if (string.IsNullOrWhiteSpace(currency) || currency.Length != 3)
             throw new ArgumentException("Currency must be a 3-letter ISO code.", nameof(currency));
 
 
-        if(iban != null && (iban.Length < 15 || iban.Length > 34))
+        if (iban != null && (iban.Length < 15 || iban.Length > 34))
             throw new ArgumentException("IBAN must be between 15 and 34 characters.", nameof(iban));
 
-        if(string.IsNullOrEmpty(iban) && !string.IsNullOrEmpty(currency))
-            PayementInformations = PayementInformations with { Currency = currency.Trim() };
-        else if(!string.IsNullOrEmpty(iban))
-            PayementInformations = PayementInformations with { Iban = iban.Trim() };
+        PayementInformations = new OwnerPayementInformations(iban!, currency);
     }
-
-    public void UpdateOpeningHours(string? openingHoursJson)
-        => ContactInformations = ContactInformations with { OpeningHoursJson = openingHoursJson };
-
-    public void UpdateContact(string email, string phone)
+    public void UpdateContactInformations(string contactName, string email, string phone, string? openingHoursJson)
     {
-        ContactInformations = ContactInformations with { Email = email.Trim(), Phone = phone.Trim() };
+        ContactInformations = new ContactInformations(contactName, email, phone, openingHoursJson);
     }
 
     public void UpdateTermsUrl(string? url)

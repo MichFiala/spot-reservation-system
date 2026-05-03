@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.15" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -19,7 +19,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SpotReservation.Application\SpotReservation.Application.csproj" />
-    <ProjectReference Include="..\SpotReservation.Infrastructure\SpotReservation.Infrastructure.csproj" />
+    <ProjectReference
+      Include="..\SpotReservation.Infrastructure\SpotReservation.Infrastructure.csproj" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <ContainerRepository>michfiala/tenspot-application</ContainerRepository>
+  </PropertyGroup>
 
 </Project>

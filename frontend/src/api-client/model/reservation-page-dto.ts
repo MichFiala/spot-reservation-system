@@ -26,8 +26,10 @@ export interface ReservationPageDto {
     'mapMinZoom': number;
     'mapMaxZoom': number;
     'iban': string | null;
+    'currency': string | null;
     'termsAndConditionsUrl': string | null;
     'openingHoursJson': string | null;
+    'contactName': string | null;
     'contactEmail': string | null;
     'contactPhone': string | null;
     'spots': Array<SpotDto>;

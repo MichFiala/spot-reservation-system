@@ -22,11 +22,5 @@ export interface CreateReservationPageRequest {
     'mapZoom': number;
     'mapMinZoom': number;
     'mapMaxZoom': number;
-    'contactName': string | null;
-    'contactEmail': string | null;
-    'contactPhone': string | null;
-    'openingHoursJson': string | null;
-    'iban': string;
-    'currency': string;
 }
 

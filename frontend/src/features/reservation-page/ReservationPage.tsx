@@ -1,38 +1,44 @@
 import {
+  Alert,
   Box,
+  Button,
   Card,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Paper,
   Stack,
   Typography,
 } from "@mui/material";
 import PlaceIcon from "@mui/icons-material/Place";
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
-import { use, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { SpotDto } from "../../api-client";
 import AboutSection from "./AboutSection";
 import { useReservationPage } from "./useReservationPage";
-import { ReservationForm } from "./ReservationForm";
+import { PageName } from "../../constants";
+import SpotCard from "../spot/SpotCard";
 
-const createMarkerIcon = (color: string, highlighted: boolean) =>
-  L.divIcon({
+const createMarkerIcon = (color: string, highlighted: boolean)=>{
+  const size = highlighted ? 40 : 30;
+  
+  return L.divIcon({
     className: "",
     html: `<div style="
       background-color: ${color};
-      width: ${highlighted ? 30 : 24}px;
-      height: ${highlighted ? 30 : 24}px;
+      width: ${size}px;
+      height: ${size}px;
       border-radius: 50% 50% 50% 0;
       transform: rotate(-45deg);
-      border: ${highlighted ? "2px solid white" : "1px solid white"};
+      border: ${highlighted ? "3px solid white" : "1px solid ${color}"};
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     "></div>`,
-    iconSize: [24, 24],
-    iconAnchor: [24, 24],
-  });
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size],
+})};
 
 function FlyToSpot({ spot }: { spot: SpotDto | null }) {
   const map = useMap();
@@ -52,41 +58,57 @@ function FlyToSpot({ spot }: { spot: SpotDto | null }) {
 }
 
 interface ReservationPageProps {
-  slug?: string;
+  id?: string;
 }
 
 export default function ReservationPage({
-  slug: pageId,
+  id: pageId,
 }: ReservationPageProps) {
   const [searchParams] = useSearchParams();
   const resolvedPageId = pageId ?? searchParams.get("pageId") ?? "";
 
   const [selectedSpot, setSelectedSpot] = useState<SpotDto | null>(null);
   const { data, isLoading, isError } = useReservationPage(resolvedPageId);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (selectedSpot) {
       setSelectedSpot(data?.data.spots.find((s) => s.id === selectedSpot.id) ?? null);
     }
+
+    document.title = data?.data.name ? `${data.data.name} | ${PageName}` : PageName;
   }, [data]);
 
   if (isLoading) {
-    return <Box>Loading...</Box>;
+    return <Box>Načítání...</Box>;
+  }
+
+  if (isError || (!isLoading && !data)) {
+    return (
+      <Box sx={{ p: 4, textAlign: "center" }}>
+        <Alert severity="warning" sx={{ mb: 2, justifyContent: "center" }}>
+          Rezervační stránka nebyla nalezena.
+        </Alert>
+        <Button variant="contained" onClick={() => navigate("/")}>
+          Zpět na hlavní stránku
+        </Button>
+      </Box>
+    );
   }
 
   return (
     <>
       <Box>
-        <Stack spacing={4}>
+        <Stack spacing={1}>
           {/* Header */}
-          <Box>
+          <Paper sx={{ p: 3, borderRadius: 1, boxShadow: 2 }}>
             <Typography variant="h4" sx={{ fontWeight: 700 }}>
               {data?.data.name}
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Vyberte místo na mapě a zarezervujte si termín.
+              {data?.data.description}
             </Typography>
-          </Box>
+          </Paper>
 
           {/* Spot list + Map + Spot detail */}
           <Box
@@ -198,7 +220,7 @@ export default function ReservationPage({
               </Box>
 
               {/* Spot detail panel — overlays the map on the right */}
-              {selectedSpot && <ReservationForm key={selectedSpot.id} selectedSpot={selectedSpot} />}
+              {selectedSpot && data?.data && <SpotCard key={selectedSpot.id} selectedSpot={selectedSpot} reservationPage={data?.data} />}
             </Box>
           </Box>
           <AboutSection reservationPage={data?.data} />

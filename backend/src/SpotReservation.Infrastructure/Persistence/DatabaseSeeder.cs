@@ -33,8 +33,8 @@ public static class DatabaseSeeder
         // --- ReservationPage ---
         var page = ReservationPage.Create(
             "rybnik-u-lesa", "Rybník U Lesa", "Kempování a rybaření u rybníka",
-            new ContactInformations("Rybník U Lesa, 12345, Česká republika", string.Empty, "+420 123 456 789", null),
             new MapOptions(new Point(13.049666, 49.327535) { SRID = 4326 }, 18, 15, 18),
+            new ContactInformations("Jan Vomacka", "Rybník U Lesa, 12345, Česká republika", "+420 123 456 789", null),
             new OwnerPayementInformations("CZ5508000000001234567899", "CZK"));
         db.ReservationPages.Add(page);
         await db.SaveChangesAsync();
