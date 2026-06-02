@@ -6,6 +6,10 @@ public interface IReservationPageRepository
 {
     Task<IReadOnlyList<ReservationPage>> ListAsync(CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<ReservationPage>> ListByOwnerIdAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task<bool> OwnsPageAsync(Guid userId, string pageId, CancellationToken cancellationToken = default);
+
     Task<ReservationPage?> GetByPageAsync(string pageId, CancellationToken cancellationToken = default);
 
     Task AddAsync(ReservationPage page, CancellationToken cancellationToken = default);

@@ -34,6 +34,15 @@ internal sealed class ReservationPageConfiguration : IEntityTypeConfiguration<Re
             pi.Property(p => p.Currency).HasMaxLength(3);
         });
 
+        builder.Property(p => p.UserId).IsRequired();
+
+        builder.HasOne(p => p.User)
+            .WithMany()
+            .HasForeignKey(p => p.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(p => p.UserId);
+
         builder.Property(p => p.TermsAndConditionsUrl).HasMaxLength(500);
 
         builder.OwnsOne(p => p.ContactInformations, ci =>

@@ -1,30 +1,44 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
-import Alert from '@mui/material/Alert';
-import Link from '@mui/material/Link';
-import CircularProgress from '@mui/material/CircularProgress';
-import { useAuthStore } from '../../store/authStore';
-import { authApi } from '../../api/apis';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate, Link as RouterLink, useLocation } from "react-router-dom";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import Paper from "@mui/material/Paper";
+import Alert from "@mui/material/Alert";
+import Link from "@mui/material/Link";
+import CircularProgress from "@mui/material/CircularProgress";
+import { useAuthStore } from "../../store/authStore";
+import { authApi } from "../../api/apis";
+import { useEffect } from "react";
 
 const schema = z.object({
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type FormValues = z.infer<typeof schema>;
 
-export default function LoginPage() {
-  const navigate = useNavigate();
-  const { setAuth } = useAuthStore();
+interface propState {
+  redirectTo?: string;
+}
 
+export default function LoginPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { setAuth, isAuthenticated } = useAuthStore();
+  const { redirectTo } = location.state
+    ? (location.state as propState)
+    : { redirectTo: "/" };
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate(redirectTo ?? "/", { replace: true });
+    }
+  }, [isAuthenticated, navigate, redirectTo]);
   const {
     register,
     handleSubmit,
@@ -36,18 +50,22 @@ export default function LoginPage() {
       authApi.apiAuthLoginPost({ email, password }),
     onSuccess: (data) => {
       setAuth(data.data);
-      navigate('/');
+      navigate(redirectTo ?? "/");
     },
   });
 
   const errorMessage = error
-    ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail ?? 'Login failed'
+    ? ((error as { response?: { data?: { detail?: string } } }).response?.data
+        ?.detail ?? "Login failed")
     : null;
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
-      <Paper elevation={2} sx={{ p: 4, width: '100%', maxWidth: 420 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, textAlign: 'center' }}>
+    <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
+      <Paper elevation={2} sx={{ p: 4, width: "100%", maxWidth: 420 }}>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 700, mb: 3, textAlign: "center" }}
+        >
           Sign in
         </Typography>
 
@@ -57,12 +75,16 @@ export default function LoginPage() {
           </Alert>
         )}
 
-        <Box component="form" onSubmit={handleSubmit((data) => mutate(data))} noValidate>
+        <Box
+          component="form"
+          onSubmit={handleSubmit((data) => mutate(data))}
+          noValidate
+        >
           <TextField
             label="Email"
             type="email"
             autoComplete="email"
-            {...register('email')}
+            {...register("email")}
             error={!!errors.email}
             helperText={errors.email?.message}
             sx={{ mb: 2 }}
@@ -71,18 +93,28 @@ export default function LoginPage() {
             label="Password"
             type="password"
             autoComplete="current-password"
-            {...register('password')}
+            {...register("password")}
             error={!!errors.password}
             helperText={errors.password?.message}
             sx={{ mb: 3 }}
           />
-          <Button type="submit" variant="contained" fullWidth disabled={isPending} size="large">
-            {isPending ? <CircularProgress size={22} color="inherit" /> : 'Sign in'}
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            disabled={isPending}
+            size="large"
+          >
+            {isPending ? (
+              <CircularProgress size={22} color="inherit" />
+            ) : (
+              "Sign in"
+            )}
           </Button>
         </Box>
 
-        <Typography variant="body2" sx={{ textAlign: 'center', mt: 2 }}>
-          No account?{' '}
+        <Typography variant="body2" sx={{ textAlign: "center", mt: 2 }}>
+          No account?{" "}
           <Link component={RouterLink} to="/register">
             Register
           </Link>

@@ -95,19 +95,19 @@ export const SpotPhotosApiAxiosParamCreator = function (configuration?: Configur
         },
         /**
          * 
+         * @param {File} file 
          * @param {string} spotId 
          * @param {number} sortOrder 
-         * @param {File} file 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiSpotPhotosPost: async (spotId: string, sortOrder: number, file: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        apiSpotPhotosPost: async (file: File, spotId: string, sortOrder: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'file' is not null or undefined
+            assertParamExists('apiSpotPhotosPost', 'file', file)
             // verify required parameter 'spotId' is not null or undefined
             assertParamExists('apiSpotPhotosPost', 'spotId', spotId)
             // verify required parameter 'sortOrder' is not null or undefined
             assertParamExists('apiSpotPhotosPost', 'sortOrder', sortOrder)
-            // verify required parameter 'file' is not null or undefined
-            assertParamExists('apiSpotPhotosPost', 'file', file)
             const localVarPath = `/api/spot-photos`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -121,17 +121,17 @@ export const SpotPhotosApiAxiosParamCreator = function (configuration?: Configur
             const localVarQueryParameter = {} as any;
             const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)();
 
-            if (spotId !== undefined) {
-                localVarQueryParameter['spotId'] = spotId;
-            }
-
-            if (sortOrder !== undefined) {
-                localVarQueryParameter['sortOrder'] = sortOrder;
-            }
-
 
             if (file !== undefined) { 
                 localVarFormParams.append('file', file as any);
+            }
+
+            if (spotId !== undefined) { 
+                localVarFormParams.append('spotId', spotId as any);
+            }
+
+            if (sortOrder !== undefined) { 
+                localVarFormParams.append('sortOrder', sortOrder as any);
             }
             localVarHeaderParameter['Content-Type'] = 'multipart/form-data';
             localVarHeaderParameter['Accept'] = 'application/json';
@@ -181,14 +181,14 @@ export const SpotPhotosApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {File} file 
          * @param {string} spotId 
          * @param {number} sortOrder 
-         * @param {File} file 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async apiSpotPhotosPost(spotId: string, sortOrder: number, file: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SpotPhotoDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiSpotPhotosPost(spotId, sortOrder, file, options);
+        async apiSpotPhotosPost(file: File, spotId: string, sortOrder: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SpotPhotoDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiSpotPhotosPost(file, spotId, sortOrder, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['SpotPhotosApi.apiSpotPhotosPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -222,14 +222,14 @@ export const SpotPhotosApiFactory = function (configuration?: Configuration, bas
         },
         /**
          * 
+         * @param {File} file 
          * @param {string} spotId 
          * @param {number} sortOrder 
-         * @param {File} file 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        apiSpotPhotosPost(spotId: string, sortOrder: number, file: File, options?: RawAxiosRequestConfig): AxiosPromise<SpotPhotoDto> {
-            return localVarFp.apiSpotPhotosPost(spotId, sortOrder, file, options).then((request) => request(axios, basePath));
+        apiSpotPhotosPost(file: File, spotId: string, sortOrder: number, options?: RawAxiosRequestConfig): AxiosPromise<SpotPhotoDto> {
+            return localVarFp.apiSpotPhotosPost(file, spotId, sortOrder, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -260,14 +260,14 @@ export class SpotPhotosApi extends BaseAPI {
 
     /**
      * 
+     * @param {File} file 
      * @param {string} spotId 
      * @param {number} sortOrder 
-     * @param {File} file 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public apiSpotPhotosPost(spotId: string, sortOrder: number, file: File, options?: RawAxiosRequestConfig) {
-        return SpotPhotosApiFp(this.configuration).apiSpotPhotosPost(spotId, sortOrder, file, options).then((request) => request(this.axios, this.basePath));
+    public apiSpotPhotosPost(file: File, spotId: string, sortOrder: number, options?: RawAxiosRequestConfig) {
+        return SpotPhotosApiFp(this.configuration).apiSpotPhotosPost(file, spotId, sortOrder, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

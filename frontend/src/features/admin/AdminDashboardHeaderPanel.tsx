@@ -16,10 +16,10 @@ import {
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useSearchParams } from "react-router-dom";
 import { reservationPagesApi } from "../../api/apis";
 import { apiClient } from "../../api/client";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { PageIdContext } from "../../context/pageIdContext";
 
 interface PageSummary {
   id: string;
@@ -27,16 +27,19 @@ interface PageSummary {
 }
 
 export default function AdminDashboardHeaderPanel() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const queryKey = ["reservation-pages"];
   const queryClient = useQueryClient();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  const pageId = searchParams.get("pageId") ?? "";
+  const [pageId, setPageId] = useContext(PageIdContext);
 
   const { data: pages = [], isLoading } = useQuery<PageSummary[]>({
-    queryKey: ["admin-pages"],
+    queryKey: queryKey,
     queryFn: async () => {
       const res = await reservationPagesApi.apiReservationPagesGet();
+
+      setPageId(res.data[0]?.id);
+
       return res.data;
     },
   });
@@ -45,24 +48,15 @@ export default function AdminDashboardHeaderPanel() {
     mutationFn: (id: string) =>
       apiClient.delete(`/api/reservation-pages/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-pages"] });
+      queryClient.invalidateQueries({ queryKey: queryKey });
       setDeleteOpen(false);
-      searchParams.delete("pageId");
-      setSearchParams(searchParams);
+      setPageId(null);
     },
   });
 
-  const handleSelect = (id: string) => {
-    if (id) {
-      setSearchParams({ pageId: id });
-    }
-  };
-
   const handleCreate = () => {
-    if (searchParams.has("pageId")) {
-      searchParams.delete("pageId");
-      setSearchParams(searchParams);
-    }
+    queryClient.invalidateQueries({ queryKey: queryKey });
+    setPageId(null);
   };
 
   return (
@@ -77,7 +71,7 @@ export default function AdminDashboardHeaderPanel() {
               <Select
                 value={pageId}
                 label="Rezervační stránka"
-                onChange={(e) => handleSelect(e.target.value)}
+                onChange={(e) => setPageId(e.target.value!)}
               >
                 {pages.map((page) => (
                   <MenuItem key={page.id} value={page.id}>
@@ -123,7 +117,7 @@ export default function AdminDashboardHeaderPanel() {
             color="error"
             variant="contained"
             disabled={deleteMutation.isPending}
-            onClick={() => deleteMutation.mutate(pageId)}
+            onClick={() => deleteMutation.mutate(pageId!)}
           >
             Smazat
           </Button>

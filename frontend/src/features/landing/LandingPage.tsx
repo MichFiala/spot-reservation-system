@@ -12,7 +12,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import DashboardCustomizeIcon from "@mui/icons-material/DashboardCustomize";
 import PeopleIcon from "@mui/icons-material/People";
 import PaymentsIcon from "@mui/icons-material/Payments";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlined";
+import EmailIcon from "@mui/icons-material/Email";
 import { useEffect } from "react";
 
 const features = [
@@ -42,53 +42,7 @@ const features = [
   },
 ];
 
-const plans = [
-  {
-    name: "Starter",
-    price: "0 Kč",
-    period: "/měsíc",
-    description: "Pro vyzkoušení",
-    features: [
-      "1 rezervační stránka",
-      "Až 5 míst",
-      "Základní statistiky",
-      "E-mailové notifikace",
-    ],
-    cta: "Začít zdarma",
-    variant: "outlined" as const,
-  },
-  {
-    name: "Pro",
-    price: "490 Kč",
-    period: "/měsíc",
-    description: "Pro malé firmy",
-    features: [
-      "Neomezené stránky",
-      "Neomezená místa",
-      "Pokročilé statistiky",
-      "Vlastní doména",
-      "Prioritní podpora",
-    ],
-    cta: "Vybrat Pro",
-    variant: "contained" as const,
-    highlighted: true,
-  },
-  {
-    name: "Enterprise",
-    price: "Na míru",
-    period: "",
-    description: "Pro velké organizace",
-    features: [
-      "Vše z Pro",
-      "API přístup",
-      "SLA garance",
-      "Dedikovaná podpora",
-      "Vlastní úpravy",
-    ],
-    cta: "Kontaktujte nás",
-    variant: "outlined" as const,
-  },
-];
+const CONTACT_EMAIL = "michfiala.it@gmail.com";
 
 export default function LandingPage() {
   useEffect(() => {
@@ -117,31 +71,31 @@ export default function LandingPage() {
             color="text.secondary"
             sx={{ mb: 4, maxWidth: 600, mx: "auto", fontWeight: 400 }}
           >
-            Vytvořte si vlastní rezervační web za pár minut. Parkovací místa,
-            sportovní kurty, kempy, coworkingy — cokoliv, co potřebuje rezervaci.
+            Vytvořte si vlastní rezervační web za pár minut. Rybářské revíry,
+            parkovací místa, kempy — cokoliv, co potřebuje rezervaci.
           </Typography>
           <Stack
             direction={{ xs: "column", sm: "row" }}
             spacing={2}
-            sx={{justifyContent: "center"}}
+            sx={{ justifyContent: "center" }}
           >
             <Button
               variant="contained"
               size="large"
-              component={RouterLink}
-              to="/register"
+              href={`mailto:${CONTACT_EMAIL}`}
+              startIcon={<EmailIcon />}
               sx={{ px: 4, py: 1.5 }}
             >
-              Vytvořit rezervační stránku
+              Zájem o přístup
             </Button>
             <Button
               variant="outlined"
               size="large"
               component={RouterLink}
-              to="/reserve?id=demo"
+              to="/přihlášení"
               sx={{ px: 4, py: 1.5 }}
             >
-              Zobrazit demo
+              Přihlásit se
             </Button>
           </Stack>
         </Container>
@@ -189,113 +143,7 @@ export default function LandingPage() {
         </Container>
       </Box>
 
-      {/* Pricing */}
-      <Box sx={{ py: 8, px: 2 }}>
-        <Container maxWidth="lg">
-          <Typography
-            variant="h4"
-            sx={{ fontWeight: 700, textAlign: "center", mb: 2 }}
-          >
-            Ceník
-          </Typography>
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            sx={{ textAlign: "center", mb: 6, maxWidth: 500, mx: "auto" }}
-          >
-            Vyberte si plán, který vyhovuje vašemu podnikání. Upgrade nebo
-            downgrade kdykoliv.
-          </Typography>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
-              gap: 3,
-              alignItems: "stretch",
-            }}
-          >
-            {plans.map((plan) => (
-              <Card
-                key={plan.name}
-                elevation={plan.highlighted ? 4 : 0}
-                sx={{
-                  p: 3,
-                  border: plan.highlighted ? 2 : 1,
-                  borderColor: plan.highlighted ? "primary.main" : "divider",
-                  display: "flex",
-                  flexDirection: "column",
-                }}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  {plan.highlighted && (
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        bgcolor: "primary.main",
-                        color: "primary.contrastText",
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: 1,
-                        fontWeight: 600,
-                        display: "inline-block",
-                        mb: 2,
-                      }}
-                    >
-                      Nejoblíbenější
-                    </Typography>
-                  )}
-                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                    {plan.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    {plan.description}
-                  </Typography>
-                  <Box sx={{ display: "flex", alignItems: "baseline", mb: 3 }}>
-                    <Typography variant="h3" sx={{ fontWeight: 800 }}>
-                      {plan.price}
-                    </Typography>
-                    {plan.period && (
-                      <Typography
-                        variant="body1"
-                        color="text.secondary"
-                        sx={{ ml: 0.5 }}
-                      >
-                        {plan.period}
-                      </Typography>
-                    )}
-                  </Box>
-                  <Stack spacing={1.5}>
-                    {plan.features.map((feat) => (
-                      <Box
-                        key={feat}
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
-                        <CheckCircleOutlineIcon
-                          sx={{ fontSize: 20, color: "success.main" }}
-                        />
-                        <Typography variant="body2">{feat}</Typography>
-                      </Box>
-                    ))}
-                  </Stack>
-                </CardContent>
-                <Box sx={{ px: 2, pb: 2, pt: 1 }}>
-                  <Button
-                    variant={plan.variant}
-                    fullWidth
-                    size="large"
-                    component={RouterLink}
-                    to="/register"
-                  >
-                    {plan.cta}
-                  </Button>
-                </Box>
-              </Card>
-            ))}
-          </Box>
-        </Container>
-      </Box>
-
-      {/* CTA */}
+      {/* Contact */}
       <Box
         sx={{
           py: 8,
@@ -306,17 +154,18 @@ export default function LandingPage() {
         }}
       >
         <Container maxWidth="sm">
+          <EmailIcon sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
           <Typography variant="h4" sx={{ fontWeight: 700, mb: 2 }}>
-            Začněte přijímat rezervace ještě dnes
+            Máte zájem?
           </Typography>
           <Typography variant="body1" sx={{ mb: 4, opacity: 0.9 }}>
-            Registrace je zdarma. Žádná kreditní karta. Plně funkční do 5 minut.
+            Systém je aktuálně v raném vývoji. Napište mi a domluvíme se na
+            zpřístupnění pro vaši organizaci.
           </Typography>
           <Button
             variant="contained"
             size="large"
-            component={RouterLink}
-            to="/register"
+            href={`mailto:${CONTACT_EMAIL}`}
             sx={{
               px: 5,
               py: 1.5,
@@ -325,7 +174,7 @@ export default function LandingPage() {
               "&:hover": { bgcolor: "grey.100" },
             }}
           >
-            Vytvořit účet zdarma
+            {CONTACT_EMAIL}
           </Button>
         </Container>
       </Box>

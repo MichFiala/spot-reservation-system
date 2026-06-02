@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http.Json;
 using NetTopologySuite.IO.Converters;
 using SpotReservation.Api.Endpoints;
@@ -30,7 +31,7 @@ builder.Services.AddCors(options =>
                    .AllowAnyMethod()
                    .AllowCredentials();
         else
-            options.WithOrigins("http://*.localhost:4040", "https://*.tenspot.cz")
+            options.WithOrigins("http://*.localhost:4040", "https://*.tenspot.cz", "https://tenspot.cz")
                    .SetIsOriginAllowedToAllowWildcardSubdomains()
                    .AllowAnyHeader()
                    .AllowAnyMethod()
@@ -45,6 +46,7 @@ builder.Services.AddOpenApi();
 builder.Services.Configure<JsonOptions>(options =>
 {
     options.SerializerOptions.Converters.Add(new GeoJsonConverterFactory());
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 
@@ -61,11 +63,6 @@ await DatabaseSeeder.SeedAsync(app.Services);
 
 app.UseCors("CorsPolicy");
 
-if (app.Environment.IsProduction())
-{
-    app.UseHttpsRedirection();
-}
-
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -78,6 +75,8 @@ app.MapSpots();
 app.MapReservations();
 app.MapReservationPages();
 app.MapSpotPhotos();
+
+app.MapFallbackToFile("index.html");
 
 Console.WriteLine("Starting application...");
 

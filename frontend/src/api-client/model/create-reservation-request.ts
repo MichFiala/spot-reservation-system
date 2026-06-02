@@ -18,5 +18,9 @@ export interface CreateReservationRequest {
     'spotId': string;
     'startUtc': string;
     'endUtc': string;
+    'guestName': string;
+    'guestEmail': string;
+    'guestPhone': string;
+    'guestNote': string | null;
 }
 

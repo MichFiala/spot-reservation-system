@@ -11,6 +11,7 @@ import Paper from '@mui/material/Paper';
 import Alert from '@mui/material/Alert';
 import Link from '@mui/material/Link';
 import CircularProgress from '@mui/material/CircularProgress';
+import { useEffect } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { authApi } from '../../api/apis';
 
@@ -29,7 +30,13 @@ type FormValues = z.infer<typeof schema>;
 
 export default function RegisterPage() {
   const navigate = useNavigate();
-  const { setAuth } = useAuthStore();
+  const { setAuth, isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const {
     register,
@@ -98,7 +105,7 @@ export default function RegisterPage() {
 
         <Typography variant="body2" sx={{ textAlign: 'center', mt: 2 }}>
           Already have an account?{' '}
-          <Link component={RouterLink} to="/login">
+          <Link component={RouterLink} to="/přihlášení">
             Sign in
           </Link>
         </Typography>

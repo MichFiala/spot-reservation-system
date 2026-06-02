@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using SpotReservation.Application.Features.SpotPhotos;
 
 namespace SpotReservation.Api.Endpoints;
@@ -13,7 +14,7 @@ public static class SpotPhotosEndpoints
             .AllowAnonymous()
             .Produces<IReadOnlyList<SpotPhotoDto>>();
 
-        group.MapPost("/", async (IFormFile file, Guid spotId, int sortOrder, ISpotPhotoService photos, CancellationToken ct) =>
+        group.MapPost("/", async (IFormFile file, [FromForm] Guid spotId, [FromForm]  int sortOrder, ISpotPhotoService photos, CancellationToken ct) =>
         {
             using var stream = file.OpenReadStream();
             var created = await photos.AddAsync(spotId, sortOrder, stream, file.ContentType, file.FileName, ct);

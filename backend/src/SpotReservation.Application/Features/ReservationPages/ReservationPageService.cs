@@ -1,3 +1,4 @@
+using SpotReservation.Application.Abstractions;
 using SpotReservation.Application.Common.Exceptions;
 using SpotReservation.Application.Features.Spots;
 using SpotReservation.Domain.Entities;
@@ -7,6 +8,7 @@ namespace SpotReservation.Application.Features.ReservationPages;
 
 internal sealed class ReservationPageService(
     IReservationPageRepository reservationPages,
+    ICurrentUserService currentUser,
     IUnitOfWork uow) : IReservationPageService
 {
     public async Task<IReadOnlyList<ReservationPageSummaryDto>> ListAsync(CancellationToken cancellationToken = default)
@@ -17,18 +19,22 @@ internal sealed class ReservationPageService(
 
     public async Task<ReservationPageDto> GetAsync(string id, CancellationToken cancellationToken = default)
     {
-        var page = await LoadAsync(id, cancellationToken);
+        var page = await reservationPages.GetByPageAsync(id, cancellationToken) ?? throw new NotFoundException(nameof(ReservationPage), id);
 
         return ToDto(page);
     }
 
     public async Task<ReservationPageDto> CreateAsync(CreateReservationPageRequest request, CancellationToken cancellationToken = default)
     {
+        var userId = currentUser.UserId
+            ?? throw new UnauthorizedException("An authenticated user is required.");
+
         var page = ReservationPage.Create(
             request.Id,
             request.Name,
             request.Description,
-            new MapOptions(request.MapCenter, request.MapZoom, request.MapMinZoom, request.MapMaxZoom));
+            new MapOptions(request.MapCenter, request.MapZoom, request.MapMinZoom, request.MapMaxZoom),
+            userId);
 
         await reservationPages.AddAsync(page, cancellationToken);
         await uow.SaveChangesAsync(cancellationToken);

@@ -1,5 +1,8 @@
+using Microsoft.Extensions.Options;
+using Resend;
 using SpotReservation.Application.Abstractions;
 using SpotReservation.Application.Common.Exceptions;
+using SpotReservation.Application.Notifications;
 using SpotReservation.Domain.Entities;
 using SpotReservation.Domain.Exceptions;
 using SpotReservation.Domain.Repositories;
@@ -9,17 +12,17 @@ namespace SpotReservation.Application.Features.Reservations;
 
 internal sealed class ReservationService(
     IReservationRepository reservations,
+    IReservationPageRepository reservationPages,
     ISpotRepository spots,
     IUnitOfWork uow,
     ICurrentUserService currentUser,
-    IDateTimeProvider clock) : IReservationService
+    IDateTimeProvider clock,
+    IOptions<NotificationOptions> notificationOptions) : IReservationService
 {
     private const string AdminRole = "Admin";
 
     public async Task<ReservationDto> CreateAsync(CreateReservationRequest request, CancellationToken cancellationToken = default)
     {
-        // var userId = RequireUserId();
-
         var period = TimeRange.Create(request.StartUtc, request.EndUtc);
 
         var spot = await spots.GetByIdAsync(request.SpotId, cancellationToken)
@@ -33,7 +36,8 @@ internal sealed class ReservationService(
         Reservation reservation;
         try
         {
-            reservation = Reservation.Place(spot, period, clock.UtcNow);
+            reservation = Reservation.Place(spot, period, clock.UtcNow,
+                request.GuestName, request.GuestEmail, request.GuestPhone, request.GuestNote);
         }
         catch (SpotInactiveException ex)
         {
@@ -48,7 +52,9 @@ internal sealed class ReservationService(
     public async Task<ReservationDto> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var reservation = await LoadAsync(id, cancellationToken);
+
         EnsureOwnerOrAdmin(reservation);
+
         return ToDto(reservation);
     }
 
@@ -65,18 +71,61 @@ internal sealed class ReservationService(
         return result.Select(ToDto).ToList();
     }
 
+    public async Task<IReadOnlyList<ReservationDto>> ListForPageByMonthAsync(
+        string reservationPageId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        EnsureAdmin();
+
+        var userId = RequireUserId();
+
+        bool ownsPage = await reservationPages.OwnsPageAsync(userId, reservationPageId, cancellationToken);
+            
+        if(!ownsPage)
+            throw new UnauthorizedException("You do not have access to this reservation page.");
+
+        var result = await reservations.ListForPageAsync(reservationPageId, year, month, cancellationToken);
+
+        return result.Select(ToDto).ToList();
+    }
+
+    public async Task ApproveAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var reservation = await LoadAsync(id, cancellationToken);
+
+        EnsureOwnerOrAdmin(reservation);
+
+        if (reservation is not PendingReservation pending)
+            throw new ConflictException("Only pending reservations can be approved.");
+
+        var approved = pending.Approve(clock.UtcNow);
+
+        await reservations.TransitionAsync(reservation, approved, cancellationToken);
+
+        var emailOpts = notificationOptions.Value.Email;
+        IResend resend = ResendClient.Create(emailOpts.ApiKey);
+
+        var resp = await resend.EmailSendAsync(new EmailMessage()
+        {
+            From = emailOpts.From,
+            To = "michfiala.it@gmail.com",
+            Subject = "Hello World",
+            HtmlBody = "<p>Congrats on sending your <strong>first email</strong>!</p>",
+        });
+    }
+
     public async Task CancelAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var reservation = await LoadAsync(id, cancellationToken);
+
         EnsureOwnerOrAdmin(reservation);
 
         var nowUtc = clock.UtcNow;
         var cancelled = reservation switch
         {
-            PendingReservation p  => (Reservation)p.Cancel(nowUtc),
+            PendingReservation p => (Reservation)p.Cancel(nowUtc),
             ApprovedReservation a => a.Cancel(nowUtc),
-            CancelledReservation  => throw new ConflictException("Reservation is already cancelled."),
-            _                     => throw new InvalidOperationException($"Unexpected reservation type: {reservation.GetType().Name}")
+            CancelledReservation => throw new ConflictException("Reservation is already cancelled."),
+            _ => throw new InvalidOperationException($"Unexpected reservation type: {reservation.GetType().Name}")
         };
 
         await reservations.TransitionAsync(reservation, cancelled, cancellationToken);
@@ -88,6 +137,13 @@ internal sealed class ReservationService(
         return reservation ?? throw new NotFoundException(nameof(Reservation), id);
     }
 
+    private void EnsureAdmin()
+    {
+        RequireUserId();
+        if (!currentUser.IsInRole(AdminRole))
+            throw new UnauthorizedException("Admin role is required.");
+    }
+
     private Guid RequireUserId()
     {
         return currentUser.UserId
@@ -97,23 +153,31 @@ internal sealed class ReservationService(
     private void EnsureOwnerOrAdmin(Reservation reservation)
     {
         var userId = RequireUserId();
-        // if (reservation.UserId != userId && !currentUser.IsInRole(AdminRole))
-        // {
-        //     throw new UnauthorizedException("You do not have access to this reservation.");
-        // }
+
+        if (reservation.ReservationPage.UserId != userId && !currentUser.IsInRole(AdminRole))
+        {
+            throw new UnauthorizedException("You do not have access to this reservation.");
+        }
     }
 
     private static ReservationDto ToDto(Reservation reservation) => new(
         reservation.Id,
         reservation.SpotId,
+        reservation.Spot.Name,
         reservation.Period.StartUtc,
         reservation.Period.EndUtc,
-        reservation.GetType().Name.Replace("Reservation", string.Empty),
+        reservation.Status,
         new PaymentInfoDto(
-            reservation.Spot.ReservationPage.PayementInformations!.Iban,
+            reservation.ReservationPage.PayementInformations!.Iban,
             reservation.Amount,
             reservation.VariableSymbol,
-            reservation.Spot.ReservationPage.PayementInformations.Currency
+            reservation.ReservationPage.PayementInformations.Currency
+        ),
+        new GuestInfoDto(
+            reservation.GuestName,
+            reservation.GuestEmail,
+            reservation.GuestPhone,
+            reservation.GuestNote
         ),
         reservation.CreatedAtUtc,
         (reservation as ApprovedReservation)?.ApprovedAtUtc,

@@ -32,6 +32,47 @@ export const ReservationsApiAxiosParamCreator = function (configuration?: Config
     return {
         /**
          * 
+         * @param {string} pageId 
+         * @param {number} year 
+         * @param {number} month 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiReservationsByPagePageIdYearMonthGet: async (pageId: string, year: number, month: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'pageId' is not null or undefined
+            assertParamExists('apiReservationsByPagePageIdYearMonthGet', 'pageId', pageId)
+            // verify required parameter 'year' is not null or undefined
+            assertParamExists('apiReservationsByPagePageIdYearMonthGet', 'year', year)
+            // verify required parameter 'month' is not null or undefined
+            assertParamExists('apiReservationsByPagePageIdYearMonthGet', 'month', month)
+            const localVarPath = `/api/reservations/by-page/{pageId}/{year}/{month}`
+                .replace(`{${"pageId"}}`, encodeURIComponent(String(pageId)))
+                .replace(`{${"year"}}`, encodeURIComponent(String(year)))
+                .replace(`{${"month"}}`, encodeURIComponent(String(month)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {string} spotId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -53,6 +94,38 @@ export const ReservationsApiAxiosParamCreator = function (configuration?: Config
             const localVarQueryParameter = {} as any;
 
             localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiReservationsIdApprovePost: async (id: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'id' is not null or undefined
+            assertParamExists('apiReservationsIdApprovePost', 'id', id)
+            const localVarPath = `/api/reservations/{id}/approve`
+                .replace(`{${"id"}}`, encodeURIComponent(String(id)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
 
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
@@ -130,35 +203,6 @@ export const ReservationsApiAxiosParamCreator = function (configuration?: Config
         },
         /**
          * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        apiReservationsMineGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/reservations/mine`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarHeaderParameter['Accept'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
          * @param {CreateReservationRequest} createReservationRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -202,6 +246,20 @@ export const ReservationsApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {string} pageId 
+         * @param {number} year 
+         * @param {number} month 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiReservationsByPagePageIdYearMonthGet(pageId: string, year: number, month: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ReservationDto>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiReservationsByPagePageIdYearMonthGet(pageId, year, month, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ReservationsApi.apiReservationsByPagePageIdYearMonthGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @param {string} spotId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -210,6 +268,18 @@ export const ReservationsApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.apiReservationsBySpotSpotIdGet(spotId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ReservationsApi.apiReservationsBySpotSpotIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiReservationsIdApprovePost(id: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiReservationsIdApprovePost(id, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ReservationsApi.apiReservationsIdApprovePost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -238,17 +308,6 @@ export const ReservationsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async apiReservationsMineGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ReservationDto>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.apiReservationsMineGet(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ReservationsApi.apiReservationsMineGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
          * @param {CreateReservationRequest} createReservationRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -270,12 +329,32 @@ export const ReservationsApiFactory = function (configuration?: Configuration, b
     return {
         /**
          * 
+         * @param {string} pageId 
+         * @param {number} year 
+         * @param {number} month 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiReservationsByPagePageIdYearMonthGet(pageId: string, year: number, month: number, options?: RawAxiosRequestConfig): AxiosPromise<Array<ReservationDto>> {
+            return localVarFp.apiReservationsByPagePageIdYearMonthGet(pageId, year, month, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {string} spotId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         apiReservationsBySpotSpotIdGet(spotId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<ReservationDto>> {
             return localVarFp.apiReservationsBySpotSpotIdGet(spotId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {string} id 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiReservationsIdApprovePost(id: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.apiReservationsIdApprovePost(id, options).then((request) => request(axios, basePath));
         },
         /**
          * 
@@ -297,14 +376,6 @@ export const ReservationsApiFactory = function (configuration?: Configuration, b
         },
         /**
          * 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        apiReservationsMineGet(options?: RawAxiosRequestConfig): AxiosPromise<Array<ReservationDto>> {
-            return localVarFp.apiReservationsMineGet(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
          * @param {CreateReservationRequest} createReservationRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -321,12 +392,34 @@ export const ReservationsApiFactory = function (configuration?: Configuration, b
 export class ReservationsApi extends BaseAPI {
     /**
      * 
+     * @param {string} pageId 
+     * @param {number} year 
+     * @param {number} month 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public apiReservationsByPagePageIdYearMonthGet(pageId: string, year: number, month: number, options?: RawAxiosRequestConfig) {
+        return ReservationsApiFp(this.configuration).apiReservationsByPagePageIdYearMonthGet(pageId, year, month, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
      * @param {string} spotId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     public apiReservationsBySpotSpotIdGet(spotId: string, options?: RawAxiosRequestConfig) {
         return ReservationsApiFp(this.configuration).apiReservationsBySpotSpotIdGet(spotId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {string} id 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public apiReservationsIdApprovePost(id: string, options?: RawAxiosRequestConfig) {
+        return ReservationsApiFp(this.configuration).apiReservationsIdApprovePost(id, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -347,15 +440,6 @@ export class ReservationsApi extends BaseAPI {
      */
     public apiReservationsIdGet(id: string, options?: RawAxiosRequestConfig) {
         return ReservationsApiFp(this.configuration).apiReservationsIdGet(id, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public apiReservationsMineGet(options?: RawAxiosRequestConfig) {
-        return ReservationsApiFp(this.configuration).apiReservationsMineGet(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

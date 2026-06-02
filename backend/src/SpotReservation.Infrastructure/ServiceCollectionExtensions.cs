@@ -13,6 +13,8 @@ using SpotReservation.Infrastructure.Persistence;
 using SpotReservation.Infrastructure.Persistence.Repositories;
 using SpotReservation.Infrastructure.Storage;
 using SpotReservation.Infrastructure.Time;
+using SpotReservation.Application.Features.ReservationPages;
+using SpotReservation.Application.Notifications;
 
 namespace SpotReservation.Infrastructure;
 
@@ -35,6 +37,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReservationRepository, ReservationRepository>();
         services.AddScoped<IReservationPageRepository, ReservationPageRepository>();
         services.AddScoped<ISpotPhotoRepository, SpotPhotoRepository>();
+        services.AddScoped<ManageReservationPageService>();
 
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
@@ -52,6 +55,10 @@ public static class ServiceCollectionExtensions
 
         services.AddOptions<MinioOptions>()
             .Bind(configuration.GetSection(MinioOptions.SectionName))
+            .ValidateOnStart();
+
+        services.AddOptions<NotificationOptions>()
+            .Bind(configuration.GetSection(NotificationOptions.SectionName))
             .ValidateOnStart();
 
         services.AddSingleton<IMinioClient>(sp =>

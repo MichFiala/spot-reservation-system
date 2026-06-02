@@ -24,7 +24,7 @@ public sealed class TimeRange : ValueObject
         var startUtc = NormalizeToUtc(start, nameof(start));
         var endUtc = NormalizeToUtc(end, nameof(end));
 
-        if (endUtc <= startUtc)
+        if (endUtc < startUtc)
         {
             throw new InvalidTimeRangeException("Reservation end must be strictly after the start.");
         }
@@ -57,4 +57,6 @@ public sealed class TimeRange : ValueObject
         DateTimeKind.Unspecified => DateTime.SpecifyKind(value, DateTimeKind.Utc),
         _ => throw new InvalidTimeRangeException($"Unsupported DateTimeKind for '{paramName}'."),
     };
+
+    public TimeRange Copy() => new(StartUtc, EndUtc);
 }

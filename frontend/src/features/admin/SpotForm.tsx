@@ -1,6 +1,4 @@
 import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import {
   Dialog,
   DialogTitle,
@@ -11,25 +9,18 @@ import {
   Switch,
   FormControlLabel,
   Stack,
+  Divider,
+  Typography,
 } from '@mui/material';
+import type { SpotDto } from '../../api-client';
+import SpotPhotoManager from './SpotPhotoManager';
 
-const spotSchema = z.object({
-  name: z.string().min(1, 'Název je povinný'),
-  description: z.string().optional(),
-  pricePerDay: z.coerce.number().min(0, 'Cena musí být >= 0'),
-  latitude: z.coerce.number().min(-90).max(90),
-  longitude: z.coerce.number().min(-180).max(180),
-  isActive: z.boolean(),
-});
-
-type SpotFormValues = z.infer<typeof spotSchema>;
-
-interface Spot {
-  id: string;
+interface SpotFormValues {
   name: string;
-  description?: string | null;
+  description: string;
   pricePerDay: number;
-  location?: { coordinates?: number[] } | null;
+  latitude: number;
+  longitude: number;
   isActive: boolean;
 }
 
@@ -37,7 +28,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onSubmit: (values: SpotFormValues) => void;
-  spot?: Spot | null;
+  spot?: SpotDto | null;
   loading?: boolean;
   defaultLatitude?: number;
   defaultLongitude?: number;
@@ -49,7 +40,6 @@ export default function SpotForm({ open, onClose, onSubmit, spot, loading, defau
   const isEdit = !!spot;
 
   const { control, handleSubmit, formState: { errors } } = useForm<SpotFormValues>({
-    resolver: zodResolver(spotSchema),
     defaultValues: {
       name: spot?.name ?? '',
       description: spot?.description ?? '',
@@ -61,7 +51,7 @@ export default function SpotForm({ open, onClose, onSubmit, spot, loading, defau
   });
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle>{isEdit ? 'Upravit místo' : 'Nové místo'}</DialogTitle>
         <DialogContent>
@@ -100,6 +90,13 @@ export default function SpotForm({ open, onClose, onSubmit, spot, loading, defau
                   />
                 )}
               />
+            )}
+            {isEdit && spot && (
+              <>
+                <Divider />
+                <Typography variant="subtitle2" color="text.secondary">Fotky</Typography>
+                <SpotPhotoManager spotId={spot.id} />
+              </>
             )}
           </Stack>
         </DialogContent>

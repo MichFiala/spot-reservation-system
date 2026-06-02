@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using NetTopologySuite.Geometries;
 using SpotReservation.Domain.Common;
 
 namespace SpotReservation.Domain.Entities;
@@ -23,6 +22,9 @@ public sealed partial class ReservationPage : Entity
 
     public ContactInformations? ContactInformations { get; private set; }
 
+    public Guid UserId { get; private set; }
+    public User User { get; private set; } = null!;
+
     public IList<Spot> Spots { get; private set; } = [];
 
     private ReservationPage()
@@ -35,19 +37,22 @@ public sealed partial class ReservationPage : Entity
         string id,
         string name,
         string? description,
-        MapOptions mapOptions)
+        MapOptions mapOptions,
+        Guid userId)
     {
         Id = id;
         Name = name;
         Description = description;
         MapOptions = mapOptions;
+        UserId = userId;
     }
 
     public static ReservationPage Create(
         string id,
         string name,
         string? description,
-        MapOptions mapOptions)
+        MapOptions mapOptions,
+        Guid userId)
     {
         ValidateId(id);
 
@@ -58,7 +63,8 @@ public sealed partial class ReservationPage : Entity
             id.Trim(),
             name.Trim(),
             description?.Trim(),
-            mapOptions);
+            mapOptions,
+            userId);
     }
 
     public static ReservationPage Create(
@@ -66,10 +72,11 @@ public sealed partial class ReservationPage : Entity
         string name,
         string? description,
         MapOptions mapOptions,
+        Guid userId,
         ContactInformations contactInformations,
         OwnerPayementInformations ownerPayementInformations)
     {
-        var reservationPage = Create(id, name, description, mapOptions);
+        var reservationPage = Create(id, name, description, mapOptions, userId);
 
         reservationPage.ContactInformations = contactInformations;
         reservationPage.PayementInformations = ownerPayementInformations;

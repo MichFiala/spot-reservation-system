@@ -12,6 +12,27 @@ import {
 } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs, { type Dayjs } from "dayjs";
+import "dayjs/locale/cs";
+import updateLocale from "dayjs/plugin/updateLocale";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(updateLocale);
+dayjs.updateLocale("cs", {
+  months: [
+    "Leden",
+    "Únor",
+    "Březen",
+    "Duben",
+    "Květen",
+    "Červen",
+    "Červenec",
+    "Srpen",
+    "Září",
+    "Říjen",
+    "Listopad",
+    "Prosinec",
+  ],
+});
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { PickerDay, type PickerDayProps } from "@mui/x-date-pickers/PickerDay";
@@ -38,12 +59,14 @@ function buildSpdString(
 
 const contactSchema = z.object({
   name: z.string().min(1, "Jméno je povinné"),
-  email: z.string().email("Zadejte platný email"),
+  email: z.email("Zadejte platný email"),
   phone: z.string().min(9, "Zadejte platné telefonní číslo"),
   note: z.string().optional(),
 });
 
 type ContactFormValues = z.infer<typeof contactSchema>;
+
+dayjs.extend(utc);
 
 export function SpotReservationForm({
   selectedSpot,
@@ -82,7 +105,7 @@ export function SpotReservationForm({
     const { day, outsideCurrentMonth, ...other } = props;
 
     const isBooked = selectedSpot.occupiedDates?.some((d) =>
-      dayjs(d).isSame(day, "day"),
+      dayjs.utc(d).isSame(dayjs.utc(day), "day")
     );
     const isPast = day.isBefore(dayjs(), "day");
     const isStart = rangeStart?.isSame(day, "day") ?? false;
@@ -146,8 +169,12 @@ export function SpotReservationForm({
     mutationFn: async () => {
       const response = await reservationsApi.apiReservationsPost({
         spotId: selectedSpot.id,
-        startUtc: rangeStart!.hour(12).toISOString(),
-        endUtc: rangeEnd!.hour(12).toISOString(),
+        startUtc: dayjs(rangeStart).toISOString(),
+        endUtc: dayjs(rangeEnd).toISOString(),
+        guestName: contactData!.name,
+        guestEmail: contactData!.email,
+        guestPhone: contactData!.phone,
+        guestNote: contactData!.note || null,
       });
 
       queryClient.invalidateQueries({
@@ -245,7 +272,7 @@ export function SpotReservationForm({
         {/* Step 0 — Date picker */}
         {step === 0 && (
           <>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="cs">
               <DateCalendar
                 onChange={handleDayClick}
                 slots={{ day: ReservationDay }}

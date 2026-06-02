@@ -24,6 +24,12 @@ public interface IReservationRepository
         TimeRange period,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<Reservation>> ListForPageAsync(
+        string reservationPageId,
+        int year,
+        int month,
+        CancellationToken cancellationToken = default);
+
     Task AddAsync(Reservation reservation, CancellationToken cancellationToken = default);
 
     Task TransitionAsync(Reservation from, Reservation to, CancellationToken cancellationToken = default);

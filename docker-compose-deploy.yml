@@ -39,7 +39,7 @@ services:
       - "traefik.http.services.minio-service.loadbalancer.server.port=9000"
 
   app:
-    image: michfiala/tenspot-application:1.0.19
+    image: michfiala/tenspot-application:1.0.21
     ports:
       - "4040:4040"
     environment:
@@ -59,7 +59,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.tenspot.rule=HostRegexp(`[a-z0-9-]+\\.tenspot\\.cz`)"
-      - "traefik.http.routers.tenspot.entrypoints=web"
+      - "traefik.http.routers.tenspot.entrypoints=websecure"
+      - "traefik.http.routers.tenspot.tls=true"
+      - "traefik.http.routers.tenspot.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.tenspot.tls.domains[0].main=tenspot.cz"
+      - "traefik.http.routers.tenspot.tls.domains[0].sans=*.tenspot.cz"
       - "traefik.http.routers.tenspot.service=tenspot-service"
       - "traefik.http.services.tenspot-service.loadbalancer.server.port=4040"
 

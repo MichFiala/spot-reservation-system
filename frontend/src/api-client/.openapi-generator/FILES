@@ -15,6 +15,7 @@ model/auth-response.ts
 model/create-reservation-page-request.ts
 model/create-reservation-request.ts
 model/create-spot-request.ts
+model/guest-info-dto.ts
 model/index.ts
 model/login-request.ts
 model/payment-info-dto.ts
@@ -22,6 +23,7 @@ model/register-request.ts
 model/reservation-dto.ts
 model/reservation-page-dto.ts
 model/reservation-page-summary-dto.ts
+model/reservation-status.ts
 model/spot-dto.ts
 model/spot-photo-dto.ts
 model/update-reservation-page-request.ts

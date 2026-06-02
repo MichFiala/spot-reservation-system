@@ -1,10 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <UserSecretsId>bf5aab72-e2a4-43e5-8160-177d5e12aed4</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,13 +15,13 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NetTopologySuite.IO.GeoJSON4STJ" Version="4.0.0" />
+    <PackageReference Include="Resend" Version="0.5.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SpotReservation.Application\SpotReservation.Application.csproj" />
-    <ProjectReference
-      Include="..\SpotReservation.Infrastructure\SpotReservation.Infrastructure.csproj" />
+    <ProjectReference Include="..\SpotReservation.Infrastructure\SpotReservation.Infrastructure.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

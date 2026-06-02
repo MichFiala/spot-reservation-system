@@ -10,5 +10,9 @@ public interface IReservationService
 
     Task<IReadOnlyList<ReservationDto>> ListForSpotAsync(Guid spotId, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<ReservationDto>> ListForPageByMonthAsync(string reservationPageId, int year, int month, CancellationToken cancellationToken = default);
+
+    Task ApproveAsync(Guid id, CancellationToken cancellationToken = default);
+
     Task CancelAsync(Guid id, CancellationToken cancellationToken = default);
 }

@@ -15,17 +15,27 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import type { GuestInfoDto } from './guest-info-dto';
+// May contain unused imports in some cases
+// @ts-ignore
 import type { PaymentInfoDto } from './payment-info-dto';
+// May contain unused imports in some cases
+// @ts-ignore
+import type { ReservationStatus } from './reservation-status';
 
 export interface ReservationDto {
     'id': string;
     'spotId': string;
+    'spotName': string;
     'startUtc': string;
     'endUtc': string;
-    'status': string;
+    'status': ReservationStatus;
     'paymentInfoDto': PaymentInfoDto;
+    'guestInfo': GuestInfoDto;
     'createdAtUtc': string;
     'approvedAtUtc': string | null;
     'cancelledAtUtc': string | null;
 }
+
+
 

@@ -7,12 +7,9 @@ import {
   Stack,
   Typography,
   Alert,
-  IconButton,
   Switch,
   FormControlLabel,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { reservationPagesApi } from "../../api/apis";
 import type { ReservationPageDto, UpdateReservationPageRequest } from "../../api-client";
 
@@ -192,7 +189,7 @@ export default function ContactAndPaymentForm({ page }: Props) {
             name={`openingHours.${index}.open`}
             control={control}
             render={({ field: switchField }) => (
-              <Stack direction="row" spacing={2} alignItems="center">
+              <Stack direction="row" spacing={2}>
                 <FormControlLabel
                   control={
                     <Switch

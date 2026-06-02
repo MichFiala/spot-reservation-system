@@ -1,21 +1,20 @@
-import { Outlet, Link as RouterLink } from "react-router-dom";
+import { Outlet, Link as RouterLink, useNavigate } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { Stack } from "@mui/material";
+import { Button, Stack } from "@mui/material";
 import { PageName } from "../constants";
+import { useAuthStore } from "../store/authStore";
 
 export default function Layout() {
-  // const { user, clearAuth, isAuthenticated, isAdmin } = useAuthStore();
-  // const navigate = useNavigate();
-  // const [anchor, setAnchor] = useState<null | HTMLElement>(null);
+  const { isAuthenticated, clearAuth } = useAuthStore();
+  const navigate = useNavigate();
 
-  // const handleLogout = () => {
-  //   clearAuth();
-  //   setAnchor(null);
-  //   navigate("/login");
-  // };
+  const handleLogout = () => {
+    clearAuth();
+    navigate("/přihlášení");
+  };
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -35,6 +34,7 @@ export default function Layout() {
               alignItems: "center",
               backgroundColor: "rgb(65,130, 216)",
               borderRadius: 1,
+              flexGrow: 1,
             }}
             direction="row"
           >
@@ -57,6 +57,20 @@ export default function Layout() {
               </Typography>
             </RouterLink>
           </Stack>
+          {isAuthenticated() ? (
+            <Stack direction="row" spacing={1}>
+              <Button component={RouterLink} to="/administrace" sx={{ color: "white", textTransform: "none" }}>
+                Administrace
+              </Button>
+              <Button onClick={handleLogout} sx={{ color: "white", textTransform: "none" }}>
+                Odhlásit
+              </Button>
+            </Stack>
+          ) : (
+            <Button component={RouterLink} to="/přihlášení" sx={{ color: "white", textTransform: "none" }}>
+              Přihlášení
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
 

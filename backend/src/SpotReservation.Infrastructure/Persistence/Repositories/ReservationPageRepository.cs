@@ -7,10 +7,30 @@ namespace SpotReservation.Infrastructure.Persistence.Repositories;
 internal sealed class ReservationPageRepository(AppDbContext db) : IReservationPageRepository
 {
     public async Task<IReadOnlyList<ReservationPage>> ListAsync(CancellationToken cancellationToken = default) =>
-        await db.ReservationPages.AsNoTracking().OrderBy(p => p.Name).ToListAsync(cancellationToken);
+        await db.ReservationPages
+                .AsNoTracking()
+                .OrderBy(p => p.Name)
+                .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<ReservationPage>> ListByOwnerIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await db.ReservationPages
+            .AsNoTracking()
+            .Where(p => p.UserId == userId)
+            .OrderBy(p => p.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> OwnsPageAsync(Guid userId, string pageId, CancellationToken cancellationToken = default)
+    {
+        return await db.ReservationPages
+            .AnyAsync(p => p.UserId == userId && p.Id == pageId, cancellationToken);
+    }
 
     public Task<ReservationPage?> GetByPageAsync(string id, CancellationToken cancellationToken = default) =>
-        db.ReservationPages.Include(p => p.Spots).ThenInclude(s => s.Reservations)
+        db.ReservationPages
+          .Include(p => p.Spots)
+          .ThenInclude(s => s.Reservations)
           .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
     public async Task AddAsync(ReservationPage page, CancellationToken cancellationToken = default)

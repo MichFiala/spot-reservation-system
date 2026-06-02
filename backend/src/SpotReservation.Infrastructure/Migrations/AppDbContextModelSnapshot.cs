@@ -35,22 +35,45 @@ namespace SpotReservation.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("GuestEmail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("GuestName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("GuestNote")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("GuestPhone")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<string>("ReservationPageId")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("ReservationType")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)");
+
                     b.Property<Guid>("SpotId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("VariableSymbol")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
-
-                    b.Property<string>("status")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
 
                     b.HasKey("Id");
 
@@ -60,7 +83,7 @@ namespace SpotReservation.Infrastructure.Migrations
 
                     b.ToTable("reservations", (string)null);
 
-                    b.HasDiscriminator<string>("status").HasValue("Reservation");
+                    b.HasDiscriminator<string>("ReservationType").HasValue("Reservation");
 
                     b.UseTphMappingStrategy();
                 });
@@ -83,7 +106,12 @@ namespace SpotReservation.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("reservation_pages", (string)null);
                 });
@@ -263,6 +291,12 @@ namespace SpotReservation.Infrastructure.Migrations
 
             modelBuilder.Entity("SpotReservation.Domain.Entities.ReservationPage", b =>
                 {
+                    b.HasOne("SpotReservation.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.OwnsOne("SpotReservation.Domain.Entities.ContactInformations", "ContactInformations", b1 =>
                         {
                             b1.Property<string>("ReservationPageId")
@@ -353,6 +387,8 @@ namespace SpotReservation.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("PayementInformations");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SpotReservation.Domain.Entities.Spot", b =>

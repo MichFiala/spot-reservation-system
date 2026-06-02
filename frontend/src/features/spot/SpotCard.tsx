@@ -6,18 +6,31 @@ import {
   Stack,
   Typography,
 } from "@mui/material";
+import { useQuery } from "@tanstack/react-query";
 import type { ReservationPageDto, SpotDto } from "../../api-client";
 import { SpotReservationForm } from "./SpotReservationForm";
 import { PhotoStack } from "./PhotoGallery";
-import { getSpotPhotos } from "./spotPhotos";
+import { apiClient } from "../../api/client";
+
+interface SpotPhotoDto {
+  id: string;
+  url: string;
+}
 
 export default function SpotCard({
   selectedSpot,
-  reservationPage,
 }: {
   selectedSpot: SpotDto;
   reservationPage: ReservationPageDto;
 }) {
+  const { data: photos = [] } = useQuery<SpotPhotoDto[]>({
+    queryKey: ["spot-photos", selectedSpot.id],
+    queryFn: async () => {
+      const res = await apiClient.get(`/api/spot-photos/by-spot/${selectedSpot.id}`);
+      return res.data;
+    },
+  });
+
   return (
     <Card
       sx={{
@@ -40,7 +53,7 @@ export default function SpotCard({
                 {selectedSpot.description}
               </Typography>
               </Box>
-              <PhotoStack photos={getSpotPhotos(selectedSpot.id!)} />
+              <PhotoStack photos={photos.map((p) => p.url)} />
           </Stack>
             <SpotReservationForm
               key={selectedSpot.id}

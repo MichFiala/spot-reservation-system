@@ -8,12 +8,16 @@ namespace SpotReservation.Infrastructure.Persistence.Repositories;
 internal sealed class ReservationRepository(AppDbContext db) : IReservationRepository
 {
     public Task<Reservation?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-        db.Reservations.FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+        db.Reservations
+            .Include(r => r.ReservationPage)
+            .Include(r => r.Spot)
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Reservation>> ListForSpotAsync(Guid spotId, CancellationToken cancellationToken = default)
     {
         return await db.Reservations
             .AsNoTracking()
+            .Include(r => r.Spot)
             .Where(r => r.SpotId == spotId)
             .OrderBy(r => r.Period.StartUtc)
             .ToListAsync(cancellationToken);
@@ -23,8 +27,25 @@ internal sealed class ReservationRepository(AppDbContext db) : IReservationRepos
     {
         return await db.Reservations
             .AsNoTracking()
-            // .Where(r => r.UserId == userId)
+            .Include(r => r.Spot)
             .OrderByDescending(r => r.Period.StartUtc)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Reservation>> ListForPageAsync(
+        string reservationPageId, int year, int month, CancellationToken cancellationToken = default)
+    {
+        var monthStart = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var monthEnd = monthStart.AddMonths(1);
+
+        return await db.Reservations
+            .AsNoTracking()
+            .Include(r => r.Spot)
+            .Include(r => r.ReservationPage)
+            .Where(r => r.ReservationPageId == reservationPageId
+                        && r.Period.StartUtc.Month == month
+                        && r.Period.StartUtc.Year == year)
+            .OrderBy(r => r.Period.StartUtc)
             .ToListAsync(cancellationToken);
     }
 
@@ -35,7 +56,7 @@ internal sealed class ReservationRepository(AppDbContext db) : IReservationRepos
         // Only Pending and Approved reservations block a slot; Cancelled ones do not.
         return db.Reservations.AnyAsync(
             r => r.SpotId == spotId
-                 && EF.Property<string>(r, "status") != "Cancelled"
+                 && r.Status != ReservationStatus.Cancelled
                  && r.Period.StartUtc < period.EndUtc
                  && r.Period.EndUtc > period.StartUtc,
             cancellationToken);
@@ -46,27 +67,14 @@ internal sealed class ReservationRepository(AppDbContext db) : IReservationRepos
         await db.Reservations.AddAsync(reservation, cancellationToken);
     }
 
-    public Task TransitionAsync(Reservation from, Reservation to, CancellationToken cancellationToken = default)
+    public async Task TransitionAsync(Reservation from, Reservation to, CancellationToken cancellationToken = default)
     {
-        db.Entry(from).State = EntityState.Detached;
+        db.Remove(from);
+        
+        await db.SaveChangesAsync(cancellationToken);
+        
+        db.Add(to); 
 
-        return to switch
-        {
-            ApprovedReservation a => db.Reservations
-                .Where(r => r.Id == a.Id)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(r => EF.Property<string>(r, "status"), "Approved")
-                    .SetProperty(r => EF.Property<DateTime>(r, "approved_at_utc"), a.ApprovedAtUtc),
-                    cancellationToken),
-
-            CancelledReservation c => db.Reservations
-                .Where(r => r.Id == c.Id)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(r => EF.Property<string>(r, "status"), "Cancelled")
-                    .SetProperty(r => EF.Property<DateTime>(r, "cancelled_at_utc"), c.CancelledAtUtc),
-                    cancellationToken),
-
-            _ => throw new ArgumentException($"Unknown reservation type: {to.GetType().Name}")
-        };
+        await db.SaveChangesAsync(cancellationToken);
     }
 }

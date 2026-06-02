@@ -25,7 +25,7 @@ public static class SpotsEndpoints
             .Produces<SpotDto>()
             .Produces(StatusCodes.Status404NotFound);
 
-        group.MapPost("/", async ([FromBody]CreateSpotRequest request, ISpotService spots, CancellationToken ct) =>
+        group.MapPost("/", async ([FromBody] CreateSpotRequest request, ISpotService spots, CancellationToken ct) =>
         {
             var created = await spots.CreateAsync(request, ct);
             return Results.Created($"/api/spots/{created.Id}", created);
@@ -33,7 +33,7 @@ public static class SpotsEndpoints
         .RequireAuthorization(pb => pb.RequireRole("Admin"))
         .Produces<SpotDto>(StatusCodes.Status201Created);
 
-        group.MapPut("/{id:guid}", async (Guid id, UpdateSpotRequest request, ISpotService spots, CancellationToken ct) =>
+        group.MapPut("/{id:guid}", async (Guid id,  UpdateSpotRequest request, ISpotService spots, CancellationToken ct) =>
             Results.Ok(await spots.UpdateAsync(id, request, ct)))
             .RequireAuthorization(pb => pb.RequireRole("Admin"))
             .Produces<SpotDto>()
