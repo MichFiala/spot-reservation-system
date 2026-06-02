@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Extensions.Options;
 using Resend;
 using SpotReservation.Application.Abstractions;
@@ -79,8 +80,8 @@ internal sealed class ReservationService(
         var userId = RequireUserId();
 
         bool ownsPage = await reservationPages.OwnsPageAsync(userId, reservationPageId, cancellationToken);
-            
-        if(!ownsPage)
+
+        if (!ownsPage)
             throw new UnauthorizedException("You do not have access to this reservation page.");
 
         var result = await reservations.ListForPageAsync(reservationPageId, year, month, cancellationToken);
@@ -104,12 +105,35 @@ internal sealed class ReservationService(
         var emailOpts = notificationOptions.Value.Email;
         IResend resend = ResendClient.Create(emailOpts.ApiKey);
 
+        var cz = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
+        var start = TimeZoneInfo.ConvertTimeFromUtc(reservation.Period.StartUtc, cz);
+        var end = TimeZoneInfo.ConvertTimeFromUtc(reservation.Period.EndUtc, cz);
+
         var resp = await resend.EmailSendAsync(new EmailMessage()
         {
             From = emailOpts.From,
             To = "michfiala.it@gmail.com",
             Subject = "Hello World",
-            HtmlBody = "<p>Congrats on sending your <strong>first email</strong>!</p>",
+            Template = new EmailMessageTemplate
+            {
+                TemplateId = new Guid("407ff780-6bfb-42e2-bb81-4686bc5c1d1c"),
+                Variables = new Dictionary<string, object>
+                {
+                    ["CustomerName"] = reservation.GuestName,
+                    ["ReservationNumber"] = reservation.VariableSymbol,
+                    ["ReservationDate"] = reservation.Period.StartUtc.ToString("d. MMMM yyyy", new CultureInfo("cs-CZ")) + " – " + reservation.Period.EndUtc.ToString("d. MMMM yyyy", new CultureInfo("cs-CZ")),
+                    ["ReservationLocation"] = reservation.Spot.Name,
+                    ["ReservationDescription"] = reservation.Spot.Description ?? string.Empty,
+                    ["ReservationStatus"] = reservation.Status switch
+                    {
+                        ReservationStatus.Approved => "Schválená",
+                        ReservationStatus.Cancelled => "Zrušená",
+                        _ => "Čeká na schválení"
+                    },
+                    ["ReservationUrl"] = string.Empty,
+                    ["QrCodeUrl"] = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/1280px-QR_code_for_mobile_English_Wikipedia.svg.png",
+                }
+            }
         });
     }
 

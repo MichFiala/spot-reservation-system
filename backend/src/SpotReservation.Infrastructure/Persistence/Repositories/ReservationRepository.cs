@@ -43,8 +43,9 @@ internal sealed class ReservationRepository(AppDbContext db) : IReservationRepos
             .Include(r => r.Spot)
             .Include(r => r.ReservationPage)
             .Where(r => r.ReservationPageId == reservationPageId
-                        && r.Period.StartUtc.Month == month
-                        && r.Period.StartUtc.Year == year)
+                        // && r.Period.StartUtc.Month == month
+                        // && r.Period.StartUtc.Year == year
+                        )
             .OrderBy(r => r.Period.StartUtc)
             .ToListAsync(cancellationToken);
     }
