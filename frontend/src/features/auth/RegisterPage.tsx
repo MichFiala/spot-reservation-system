@@ -17,12 +17,12 @@ import { authApi } from '../../api/apis';
 
 const schema = z
   .object({
-    email: z.string().email('Enter a valid email'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    email: z.email(),
+    password: z.string().min(8, 'Heslo musí mít alespoň 8 znaků'),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
+    message: 'Hesla se neshodují',
     path: ['confirmPassword'],
   });
 
@@ -49,19 +49,19 @@ export default function RegisterPage() {
       authApi.apiAuthRegisterPost({ email, password }),
     onSuccess: (data) => {
       setAuth(data.data);
-      navigate('/spots');
+      navigate('/administrace');
     },
   });
 
   const errorMessage = error
-    ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail ?? 'Registration failed'
+    ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail ?? 'Registrace se nezdařila'
     : null;
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
       <Paper elevation={2} sx={{ p: 4, width: '100%', maxWidth: 420 }}>
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 3, textAlign: 'center' }}>
-          Create account
+          Vytvořit účet
         </Typography>
 
         {errorMessage && (
@@ -81,7 +81,7 @@ export default function RegisterPage() {
             sx={{ mb: 2 }}
           />
           <TextField
-            label="Password"
+            label="Heslo"
             type="password"
             autoComplete="new-password"
             {...register('password')}
@@ -90,7 +90,7 @@ export default function RegisterPage() {
             sx={{ mb: 2 }}
           />
           <TextField
-            label="Confirm password"
+            label="Potvrdit heslo"
             type="password"
             autoComplete="new-password"
             {...register('confirmPassword')}
@@ -99,14 +99,14 @@ export default function RegisterPage() {
             sx={{ mb: 3 }}
           />
           <Button type="submit" variant="contained" fullWidth disabled={isPending} size="large">
-            {isPending ? <CircularProgress size={22} color="inherit" /> : 'Create account'}
+            {isPending ? <CircularProgress size={22} color="inherit" /> : 'Vytvořit účet'}
           </Button>
         </Box>
 
         <Typography variant="body2" sx={{ textAlign: 'center', mt: 2 }}>
-          Already have an account?{' '}
+          Již máte účet?{' '}
           <Link component={RouterLink} to="/přihlášení">
-            Sign in
+            Přihlásit se
           </Link>
         </Typography>
       </Paper>

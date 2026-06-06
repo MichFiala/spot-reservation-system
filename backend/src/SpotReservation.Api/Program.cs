@@ -59,7 +59,13 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-await DatabaseSeeder.SeedAsync(app.Services);
+
+await DatabaseSeeder.MigrateAsync(app.Services);
+
+if (app.Environment.IsDevelopment())
+{
+    await DatabaseSeeder.SeedAsync(app.Services);
+}
 
 app.UseCors("CorsPolicy");
 
@@ -75,6 +81,7 @@ app.MapSpots();
 app.MapReservations();
 app.MapReservationPages();
 app.MapSpotPhotos();
+app.MapFiles();
 
 app.MapFallbackToFile("index.html");
 

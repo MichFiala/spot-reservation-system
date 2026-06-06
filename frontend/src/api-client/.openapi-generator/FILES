@@ -2,6 +2,7 @@
 .npmignore
 api.ts
 api/auth-api.ts
+api/files-api.ts
 api/reservation-pages-api.ts
 api/reservations-api.ts
 api/spot-photos-api.ts

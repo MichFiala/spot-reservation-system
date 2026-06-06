@@ -20,7 +20,7 @@ public static class SpotPhotosEndpoints
             var created = await photos.AddAsync(spotId, sortOrder, stream, file.ContentType, file.FileName, ct);
             return Results.Created($"/api/spot-photos/{created.Id}", created);
         })
-        .RequireAuthorization(pb => pb.RequireRole("Admin"))
+        .RequireAuthorization()
         .DisableAntiforgery()
         .Produces<SpotPhotoDto>(StatusCodes.Status201Created)
         .Produces(StatusCodes.Status404NotFound);
@@ -30,7 +30,7 @@ public static class SpotPhotosEndpoints
             await photos.DeleteAsync(id, ct);
             return Results.NoContent();
         })
-        .RequireAuthorization(pb => pb.RequireRole("Admin"))
+        .RequireAuthorization()
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound);
 

@@ -5,8 +5,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
@@ -21,9 +19,6 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
       MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     volumes:
       - minio-data:/data
     healthcheck:
@@ -39,7 +34,7 @@ services:
       - "traefik.http.services.minio-service.loadbalancer.server.port=9000"
 
   app:
-    image: michfiala/tenspot-application:1.0.21
+    image: michfiala/tenspot-application:1.0.25
     ports:
       - "4040:4040"
     environment:
@@ -51,6 +46,7 @@ services:
       Minio__SecretKey: ${MINIO_SECRET_KEY}
       Minio__BucketName: spot-photos
       Minio__PublicUrl: ${MINIO_PUBLIC_URL}
+      Notification__Email__ApiKey: ${Notification__Email__ApiKey}
     depends_on:
       db:
         condition: service_healthy

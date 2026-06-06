@@ -63,11 +63,9 @@ export default function AdminDashboardHeaderPanel() {
     <>
       <Box sx={{ display: "flex", justifyContent: "space-between" }}>
         <Stack direction="row" spacing={2}>
-          <FormControl size="small" sx={{ minWidth: 250 }}>
-            <InputLabel>Rezervační stránka</InputLabel>
-            {isLoading ? (
-              <CircularProgress size={24} sx={{ m: 1 }} />
-            ) : (
+          {(!isLoading && pages.length > 0 ) && (
+            <FormControl size="small" sx={{ minWidth: 250 }}>
+              <InputLabel>Rezervační stránka</InputLabel>
               <Select
                 value={pageId}
                 label="Rezervační stránka"
@@ -79,8 +77,9 @@ export default function AdminDashboardHeaderPanel() {
                   </MenuItem>
                 ))}
               </Select>
-            )}
-          </FormControl>
+              {isLoading && <CircularProgress size={24} sx={{ m: 1 }} />}
+            </FormControl>
+          )}
           <Button
             variant="outlined"
             startIcon={<AddIcon />}

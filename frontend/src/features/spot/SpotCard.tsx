@@ -10,7 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { ReservationPageDto, SpotDto } from "../../api-client";
 import { SpotReservationForm } from "./SpotReservationForm";
 import { PhotoStack } from "./PhotoGallery";
-import { apiClient } from "../../api/client";
+import { spotsPhotosApi } from "../../api/apis";
 
 interface SpotPhotoDto {
   id: string;
@@ -26,11 +26,10 @@ export default function SpotCard({
   const { data: photos = [] } = useQuery<SpotPhotoDto[]>({
     queryKey: ["spot-photos", selectedSpot.id],
     queryFn: async () => {
-      const res = await apiClient.get(`/api/spot-photos/by-spot/${selectedSpot.id}`);
+      const res = await spotsPhotosApi.apiSpotPhotosBySpotSpotIdGet(selectedSpot.id);
       return res.data;
     },
   });
-
   return (
     <Card
       sx={{

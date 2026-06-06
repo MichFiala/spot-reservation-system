@@ -10,13 +10,19 @@ namespace SpotReservation.Infrastructure.Persistence;
 
 public static class DatabaseSeeder
 {
-    public static async Task SeedAsync(IServiceProvider services)
+    public static async Task MigrateAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
         await db.Database.MigrateAsync();
+    }
+    public static async Task SeedAsync(IServiceProvider services)
+    {
+        using var scope = services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
         if (await db.Users.AnyAsync())
             return;
@@ -88,25 +94,25 @@ public static class DatabaseSeeder
         // --- Reservations ---
         var tomorrow = now.Date.AddDays(1);
 
-        var pending1 = Reservation.Place(spot1,
-            TimeRange.Create(tomorrow.AddHours(9), tomorrow.AddHours(11)), now,
-            "Alice Nováková", "alice@example.com", "+420111222333", null);
+        // var pending1 = Reservation.Place(spot1,
+        //     TimeRange.Create(tomorrow.AddHours(9), tomorrow.AddHours(11)), now,
+        //     "Alice Nováková", "alice@example.com", "+420111222333", null);
 
-        var pending2 = Reservation.Place(spot2,
-            TimeRange.Create(tomorrow.AddHours(13), tomorrow.AddHours(15)), now,
-            "Bob Svoboda", "bob@example.com", "+420444555666", "Prosím o klid");
+        // var pending2 = Reservation.Place(spot2,
+        //     TimeRange.Create(tomorrow.AddHours(13), tomorrow.AddHours(15)), now,
+        //     "Bob Svoboda", "bob@example.com", "+420444555666", "Prosím o klid");
 
-        var toApprove = Reservation.Place(spot3,
-            TimeRange.Create(tomorrow.AddDays(7).AddHours(10), tomorrow.AddDays(7).AddHours(12)), now,
-            "Karel Dvořák", "karel@example.com", "+420777888999", null);
-        var approved = toApprove.Approve(now);
+        // var toApprove = Reservation.Place(spot3,
+        //     TimeRange.Create(tomorrow.AddDays(7).AddHours(10), tomorrow.AddDays(7).AddHours(12)), now,
+        //     "Karel Dvořák", "karel@example.com", "+420777888999", null);
+        // var approved = toApprove.Approve(now);
 
-        var toCancel = Reservation.Place(spot4,
-            TimeRange.Create(tomorrow.AddDays(14).AddHours(9), tomorrow.AddDays(14).AddHours(11)), now,
-            "Jana Procházková", "jana@example.com", "+420123456789", "Zrušeno z důvodu počasí");
-        var cancelled = toCancel.Cancel(now);
+        // var toCancel = Reservation.Place(spot4,
+        //     TimeRange.Create(tomorrow.AddDays(14).AddHours(9), tomorrow.AddDays(14).AddHours(11)), now,
+        //     "Jana Procházková", "jana@example.com", "+420123456789", "Zrušeno z důvodu počasí");
+        // var cancelled = toCancel.Cancel(now);
 
-        db.Reservations.AddRange(pending1, pending2, approved, cancelled);
-        await db.SaveChangesAsync();
+        // db.Reservations.AddRange(pending1, pending2, approved, cancelled);
+        // await db.SaveChangesAsync();
     }
 }

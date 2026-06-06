@@ -25,7 +25,7 @@ public static class ReservationsEndpoints
                 Results.Ok(await reservations.ListForPageByMonthAsync(pageId, year, month, ct)))
             .Produces<IReadOnlyList<ReservationDto>>()
             .Produces(StatusCodes.Status404NotFound)
-            .RequireAuthorization(pb => pb.RequireRole("Admin"));
+            .RequireAuthorization();
 
 
         /// Create reservation anonymous user
@@ -48,7 +48,7 @@ public static class ReservationsEndpoints
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound)
         .Produces(StatusCodes.Status409Conflict)
-        .RequireAuthorization(pb => pb.RequireRole("Admin"));
+        .RequireAuthorization();
 
         /// Cancel reservation by id
         group.MapPost("/{id:guid}/cancel", async (Guid id, IReservationService reservations, CancellationToken ct) =>
@@ -58,7 +58,8 @@ public static class ReservationsEndpoints
         })
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound)
-        .Produces(StatusCodes.Status409Conflict);
+        .Produces(StatusCodes.Status409Conflict)
+        .RequireAuthorization();
 
         return app;
     }

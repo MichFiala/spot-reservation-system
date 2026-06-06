@@ -14,7 +14,8 @@ using SpotReservation.Infrastructure.Persistence.Repositories;
 using SpotReservation.Infrastructure.Storage;
 using SpotReservation.Infrastructure.Time;
 using SpotReservation.Application.Features.ReservationPages;
-using SpotReservation.Application.Notifications;
+using SpotReservation.Application.Features.Notifications;
+using SpotReservation.Application;
 
 namespace SpotReservation.Infrastructure;
 
@@ -57,9 +58,16 @@ public static class ServiceCollectionExtensions
             .Bind(configuration.GetSection(MinioOptions.SectionName))
             .ValidateOnStart();
 
+        services.AddOptions<ApplicationOptions>()
+            .Bind(configuration.GetSection(ApplicationOptions.SectionName))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.BaseUrl), "Application:BaseUrl is required.")
+            .ValidateOnStart();
+
         services.AddOptions<NotificationOptions>()
             .Bind(configuration.GetSection(NotificationOptions.SectionName))
             .ValidateOnStart();
+
+        services.AddTransient<EmailNotificationService>();    
 
         services.AddSingleton<IMinioClient>(sp =>
         {
@@ -77,6 +85,7 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddSingleton<IFileStorage, MinioFileStorage>();
+        services.AddTransient<IQrPaymentService, QrPaymentService>();
 
         return services;
     }

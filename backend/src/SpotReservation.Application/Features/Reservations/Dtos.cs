@@ -11,6 +11,7 @@ public sealed record ReservationDto(
     ReservationStatus Status,
     PaymentInfoDto PaymentInfoDto,
     GuestInfoDto GuestInfo,
+    string PaymentQrCodeUrl,
     DateTime CreatedAtUtc,
     DateTime? ApprovedAtUtc,
     DateTime? CancelledAtUtc);

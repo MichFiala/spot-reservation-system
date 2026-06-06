@@ -15,6 +15,7 @@
 
 
 export * from './api/auth-api';
+export * from './api/files-api';
 export * from './api/reservation-pages-api';
 export * from './api/reservations-api';
 export * from './api/spot-photos-api';

@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, Link as RouterLink, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -16,8 +16,8 @@ import { authApi } from "../../api/apis";
 import { useEffect } from "react";
 
 const schema = z.object({
-  email: z.string().email("Enter a valid email"),
-  password: z.string().min(1, "Password is required"),
+  email: z.string().email({ message: "Zadejte platný e-mail" }),
+  password: z.string().min(1, "Heslo je povinné"),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -30,6 +30,7 @@ export default function LoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { setAuth, isAuthenticated } = useAuthStore();
+  const queryClient = useQueryClient();
   const { redirectTo } = location.state
     ? (location.state as propState)
     : { redirectTo: "/" };
@@ -49,6 +50,7 @@ export default function LoginPage() {
     mutationFn: ({ email, password }: FormValues) =>
       authApi.apiAuthLoginPost({ email, password }),
     onSuccess: (data) => {
+      queryClient.clear();
       setAuth(data.data);
       navigate(redirectTo ?? "/");
     },
@@ -56,7 +58,7 @@ export default function LoginPage() {
 
   const errorMessage = error
     ? ((error as { response?: { data?: { detail?: string } } }).response?.data
-        ?.detail ?? "Login failed")
+        ?.detail ?? "Přihlášení se nezdařilo")
     : null;
 
   return (
@@ -66,7 +68,7 @@ export default function LoginPage() {
           variant="h5"
           sx={{ fontWeight: 700, mb: 3, textAlign: "center" }}
         >
-          Sign in
+          Přihlášení
         </Typography>
 
         {errorMessage && (
@@ -90,7 +92,7 @@ export default function LoginPage() {
             sx={{ mb: 2 }}
           />
           <TextField
-            label="Password"
+            label="Heslo"
             type="password"
             autoComplete="current-password"
             {...register("password")}
@@ -108,15 +110,15 @@ export default function LoginPage() {
             {isPending ? (
               <CircularProgress size={22} color="inherit" />
             ) : (
-              "Sign in"
+              "Přihlásit se"
             )}
           </Button>
         </Box>
 
         <Typography variant="body2" sx={{ textAlign: "center", mt: 2 }}>
-          No account?{" "}
-          <Link component={RouterLink} to="/register">
-            Register
+          Žádný účet?
+          <Link component={RouterLink} to="/registrace">
+            Registrace
           </Link>
         </Typography>
       </Paper>

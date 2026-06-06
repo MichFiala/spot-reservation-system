@@ -1,17 +1,21 @@
 import { Outlet, Link as RouterLink, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { Button, Stack } from "@mui/material";
+import { Button, IconButton, Stack } from "@mui/material";
 import { PageName } from "../constants";
 import { useAuthStore } from "../store/authStore";
+import LogoutIcon from '@mui/icons-material/Logout';
 
 export default function Layout() {
-  const { isAuthenticated, clearAuth } = useAuthStore();
+  const { isAuthenticated, clearAuth, user } = useAuthStore();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleLogout = () => {
+    queryClient.clear();
     clearAuth();
     navigate("/přihlášení");
   };
@@ -29,45 +33,38 @@ export default function Layout() {
         }}
       >
         <Toolbar sx={{ backgroundColor: "rgb(65,130, 216)" }}>
-          <Stack
-            sx={{
-              alignItems: "center",
-              backgroundColor: "rgb(65,130, 216)",
-              borderRadius: 1,
-              flexGrow: 1,
-            }}
-            direction="row"
-          >
-              <Box
-                component="img"
-                alt="The house from the offer."
-                src="/favicon.ico"
-              />
-            <RouterLink to="/" style={{ textDecoration: "none" }}>
-              <Typography
-                variant="h6"
-                sx={{
-                  flexGrow: 1,
-                  color: "white",
-                  backgroundColor: "rgb(65,130, 216)",
-                  fontWeight: 700,
-                }}
-              >
-                {PageName}
-              </Typography>
-            </RouterLink>
-          </Stack>
+          <Box component="img" alt="Logo" src="/favicon.ico" />
+          <RouterLink to="/" style={{ textDecoration: "none" }}>
+            <Typography variant="h6" sx={{ color: "white", fontWeight: 700, ml: 1 }}>
+              {PageName}
+            </Typography>
+          </RouterLink>
+          <Box sx={{ flex: 1 }} />
           {isAuthenticated() ? (
-            <Stack direction="row" spacing={1}>
-              <Button component={RouterLink} to="/administrace" sx={{ color: "white", textTransform: "none" }}>
+            <Stack direction="row" spacing={2} sx={{alignItems: "center"}}>
+              <Button
+                component={RouterLink}
+                to="/administrace"
+                sx={{ color: "white", textTransform: "none" }}
+              >
                 Administrace
               </Button>
-              <Button onClick={handleLogout} sx={{ color: "white", textTransform: "none" }}>
-                Odhlásit
-              </Button>
+              <Typography variant="caption" sx={{ color: "white" }}>
+                {user?.email}
+              </Typography>
+              <IconButton
+                onClick={handleLogout}
+                sx={{ color: "white", textTransform: "none" }}
+              >
+                <LogoutIcon/>
+              </IconButton>
             </Stack>
           ) : (
-            <Button component={RouterLink} to="/přihlášení" sx={{ color: "white", textTransform: "none" }}>
+            <Button
+              component="a"
+              href={`${import.meta.env.VITE_APP_URL}/přihlášení`}
+              sx={{ color: "white", textTransform: "none" }}
+            >
               Přihlášení
             </Button>
           )}

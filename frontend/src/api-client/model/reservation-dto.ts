@@ -32,6 +32,7 @@ export interface ReservationDto {
     'status': ReservationStatus;
     'paymentInfoDto': PaymentInfoDto;
     'guestInfo': GuestInfoDto;
+    'paymentQrCodeUrl': string;
     'createdAtUtc': string;
     'approvedAtUtc': string | null;
     'cancelledAtUtc': string | null;

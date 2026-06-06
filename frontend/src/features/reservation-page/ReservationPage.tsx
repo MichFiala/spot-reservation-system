@@ -14,7 +14,7 @@ import {
 import PlaceIcon from "@mui/icons-material/Place";
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import L from "leaflet";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { SpotDto } from "../../api-client";
 import AboutSection from "./AboutSection";
@@ -67,17 +67,20 @@ export default function ReservationPage({
   const [searchParams] = useSearchParams();
   const resolvedPageId = pageId ?? searchParams.get("pageId") ?? "";
 
-  const [selectedSpot, setSelectedSpot] = useState<SpotDto | null>(null);
+  const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
   const { data, isLoading, isError } = useReservationPage(resolvedPageId);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (selectedSpot) {
-      setSelectedSpot(data?.data.spots.find((s) => s.id === selectedSpot.id) ?? null);
-    }
-
     document.title = data?.data.name ? `${data.data.name} | ${PageName}` : PageName;
+
   }, [data]);
+
+  const selectedSpot = useMemo(
+    () => data?.data.spots.find(s => s.id === selectedSpotId) ?? null,
+    [data, selectedSpotId]
+  );
+
 
   if (isLoading) {
     return <Box>Načítání...</Box>;
@@ -134,7 +137,7 @@ export default function ReservationPage({
                   <ListItemButton
                     key={spot.id}
                     selected={spot.id === selectedSpot?.id}
-                    onClick={() => setSelectedSpot(spot)}
+                    onClick={() => setSelectedSpotId(spot.id)}
                   >
                     <ListItemIcon sx={{ minWidth: 36 }}>
                       <PlaceIcon
@@ -210,7 +213,7 @@ export default function ReservationPage({
                           )}
                           eventHandlers={{
                             click: () => {
-                              setSelectedSpot(spot);
+                              setSelectedSpotId(spot.id);
                             },
                           }}
                         />

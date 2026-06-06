@@ -1,7 +1,7 @@
-import { useSearchParams } from "react-router-dom";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import type { EventInput } from "@fullcalendar/core/index.js";
+import csLocale from "@fullcalendar/core/locales/cs";
 import { ReservationStatus, type ReservationDto } from "../../api-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { reservationsApi } from "../../api/apis";
@@ -9,21 +9,27 @@ import {
   Box,
   Card,
   CardContent,
-  CardHeader,
   Chip,
   IconButton,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import TableRowsIcon from "@mui/icons-material/TableRows";
 import { theme } from "../../utils/theme";
 import dayjs from "dayjs";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { PageIdContext } from "../../context/pageIdContext";
 
 const statusColors: Record<
@@ -49,6 +55,7 @@ const statusColors: Record<
 
 export default function AdminManageReservations() {
   const queryClient = useQueryClient();
+  const [view, setView] = useState<"calendar" | "table">("calendar");
 
   const [pageId] = useContext(PageIdContext);
 
@@ -80,9 +87,6 @@ export default function AdminManageReservations() {
     data?.data.map(
       (reservation: ReservationDto, index: number) =>
       {
-        console.log( dayjs(reservation.startUtc).local().toDate());
-        console.log(
-          dayjs(reservation.endUtc).local().toDate());
         return (
           {
           id: `${reservation.spotId}-${index}`,
@@ -103,19 +107,106 @@ export default function AdminManageReservations() {
             name: reservation.guestInfo.name,
             email: reservation.guestInfo.email,
             phone: reservation.guestInfo.phone,
+            variableSymbol: reservation.paymentInfoDto.variableSymbol
           },
         }) as EventInput;
       }
     ) ?? [];
 
+  const reservations: ReservationDto[] = data?.data ?? [];
+
   return (
+    <Box>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <ToggleButtonGroup
+          value={view}
+          exclusive
+          onChange={(_, v) => v && setView(v)}
+          size="small"
+        >
+          <ToggleButton value="calendar">
+            <Tooltip title="Kalendář">
+              <CalendarMonthIcon fontSize="small" />
+            </Tooltip>
+          </ToggleButton>
+          <ToggleButton value="table">
+            <Tooltip title="Seznam">
+              <TableRowsIcon fontSize="small" />
+            </Tooltip>
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
+      {view === "table" ? (
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>VS</TableCell>
+                <TableCell>Místo</TableCell>
+                <TableCell>Jméno</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Telefon</TableCell>
+                <TableCell>Od</TableCell>
+                <TableCell>Do</TableCell>
+                <TableCell>Stav</TableCell>
+                <TableCell align="right">Akce</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {reservations.map((r) => {
+                const isPending = r.status === ReservationStatus.Pending;
+                const isApproved = r.status === ReservationStatus.Approved;
+                const colors = statusColors[r.status];
+                return (
+                  <TableRow key={r.id}>
+                    <TableCell>{r.paymentInfoDto.variableSymbol}</TableCell>
+                    <TableCell>{r.spotName}</TableCell>
+                    <TableCell>{r.guestInfo.name}</TableCell>
+                    <TableCell>{r.guestInfo.email}</TableCell>
+                    <TableCell>{r.guestInfo.phone}</TableCell>
+                    <TableCell>{dayjs(r.startUtc).local().format("D. M. YYYY")}</TableCell>
+                    <TableCell>{dayjs(r.endUtc).local().format("D. M. YYYY")}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={isPending ? "Čeká" : isApproved ? "Schváleno" : "Zrušeno"}
+                        size="small"
+                        sx={{ bgcolor: colors?.bg, color: colors?.text, fontWeight: 600 }}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Stack direction="row" spacing={0.5} sx={{justifyContent:"flex-end"}}>
+                        {isPending && (
+                          <Tooltip title="Schválit">
+                            <IconButton size="small" onClick={() => approve.mutate(r.id)}>
+                              <CheckCircleIcon fontSize="small" color="success" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        {(isPending || isApproved) && (
+                          <Tooltip title="Zamítnout">
+                            <IconButton size="small" onClick={() => cancel.mutate(r.id)}>
+                              <CancelIcon fontSize="small" color="error" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      ) : (
     <FullCalendar
       timeZone="local"
+      locale={csLocale}
       plugins={[dayGridPlugin]}
       initialView="dayGridMonth"
       events={events}
       eventContent={(arg) => {
-        const { reservationId, status, name, email, phone, createdAtUtc } =
+        const { reservationId, status, name, email, phone, variableSymbol } =
           arg.event.extendedProps;
         const isPending = status === ReservationStatus.Pending;
         const isApproved = status === ReservationStatus.Approved;
@@ -137,7 +228,7 @@ export default function AdminManageReservations() {
                   spacing={1}
                 >
                   <Typography variant="subtitle2" noWrap>
-                    {arg.event.title}
+                    {variableSymbol} - {arg.event.title}
                   </Typography>
                   <Chip
                     label={
@@ -236,5 +327,7 @@ export default function AdminManageReservations() {
         );
       }}
     />
+      )}
+    </Box>
   );
 }

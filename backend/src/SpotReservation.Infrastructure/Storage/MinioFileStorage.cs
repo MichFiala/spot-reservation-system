@@ -1,14 +1,12 @@
-using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
 using SpotReservation.Application.Abstractions;
 
 namespace SpotReservation.Infrastructure.Storage;
 
-internal sealed class MinioFileStorage(IMinioClient minio, IOptions<MinioOptions> options) : IFileStorage
+internal sealed class MinioFileStorage(IMinioClient minio) : IFileStorage
 {
-    private readonly MinioOptions _options = options.Value;
-
+    public const string QrBucket = "qr-codes";
     public async Task<string> UploadAsync(string bucket, string objectKey, Stream content, string contentType, CancellationToken cancellationToken = default)
     {
         await EnsureBucketExistsAsync(bucket, cancellationToken);
@@ -32,11 +30,22 @@ internal sealed class MinioFileStorage(IMinioClient minio, IOptions<MinioOptions
             cancellationToken);
     }
 
-    public string GetPublicUrl(string bucket, string objectKey)
+    public async Task<Stream> DownloadAsync(string bucket, string objectKey, CancellationToken cancellationToken = default)
     {
-        var baseUrl = _options.PublicUrl.TrimEnd('/');
-        return $"{baseUrl}/{bucket}/{objectKey}";
+        var memoryStream = new MemoryStream();
+
+        await minio.GetObjectAsync(new GetObjectArgs()
+            .WithBucket(bucket)
+            .WithObject(objectKey)
+            .WithCallbackStream(async (stream, ct) => await stream.CopyToAsync(memoryStream, ct)),
+            cancellationToken);
+
+        memoryStream.Position = 0;
+        return memoryStream;
     }
+
+    public string GetPublicUrl(string bucket, string objectKey) =>
+        $"/api/files/{bucket}/{objectKey}";
 
     private async Task EnsureBucketExistsAsync(string bucket, CancellationToken cancellationToken)
     {

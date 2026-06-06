@@ -1,5 +1,5 @@
 import { Box, Tabs } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import ReservationPageForm from "./ReservationPageForm";
 import ContactAndPaymentForm from "./ContactAndPaymentForm";
 import { useReservationPage } from "../reservation-page/useReservationPage";
@@ -42,6 +42,12 @@ export default function ManageReservationPage() {
   const { data: response, isLoading } = useReservationPage(pageId);
 
   const [tab, setTab] = useState(0);
+  const [prevPageId, setPrevPageId] = useState(pageId);
+
+  if (prevPageId !== pageId) {
+    setPrevPageId(pageId);
+    setTab(0);
+  }
 
   const handleChange = (newValue: number) => {
     setTab(newValue);
@@ -50,12 +56,6 @@ export default function ManageReservationPage() {
   const handleCreate = (id: string) => {
     setPageId(id);
   };
-
-  useEffect(() => {
-    if(tab !== 0) {
-      setTab(0);
-    }
-  }, [pageId]);
   
   if (isLoading) return <Box>Načítání...</Box>;
 

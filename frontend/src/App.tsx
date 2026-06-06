@@ -9,7 +9,9 @@ import ReservationPage from "./features/reservation-page/ReservationPage";
 import LandingPage from "./features/landing/LandingPage";
 import AdminDashboard from "./features/admin/AdminDashboard";
 import LoginPage from "./features/auth/LoginPage";
+import RegisterPage from "./features/auth/RegisterPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ReservationDetailPage from "./features/reservation-detail/ReservationDetailPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +33,7 @@ export default function App() {
           {id ? (
             <Routes>
               <Route element={<Layout />}>
+                <Route path="/rezervace/:id" element={<ReservationDetailPage />} />
                 <Route path="*" element={<ReservationPage id={id} />} />
               </Route>
             </Routes>
@@ -39,6 +42,7 @@ export default function App() {
               <Route element={<Layout />}>
                 <Route index element={<LandingPage />} />
                 <Route path="/přihlášení" element={<LoginPage />} />
+                <Route path="/registrace" element={<RegisterPage />} />
                   <Route element={<ProtectedRoute />}>
                     <Route path="/administrace" element={<AdminDashboard />} />
                   </Route>

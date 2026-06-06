@@ -1,9 +1,7 @@
-using System.Globalization;
 using Microsoft.Extensions.Options;
-using Resend;
 using SpotReservation.Application.Abstractions;
 using SpotReservation.Application.Common.Exceptions;
-using SpotReservation.Application.Notifications;
+using SpotReservation.Application.Features.Notifications;
 using SpotReservation.Domain.Entities;
 using SpotReservation.Domain.Exceptions;
 using SpotReservation.Domain.Repositories;
@@ -18,10 +16,10 @@ internal sealed class ReservationService(
     IUnitOfWork uow,
     ICurrentUserService currentUser,
     IDateTimeProvider clock,
-    IOptions<NotificationOptions> notificationOptions) : IReservationService
+    EmailNotificationService emailNotificationService,
+    IQrPaymentService qrPaymentService,
+    IOptions<ApplicationOptions> applicationOptions) : IReservationService
 {
-    private const string AdminRole = "Admin";
-
     public async Task<ReservationDto> CreateAsync(CreateReservationRequest request, CancellationToken cancellationToken = default)
     {
         var period = TimeRange.Create(request.StartUtc, request.EndUtc);
@@ -34,7 +32,7 @@ internal sealed class ReservationService(
             throw new ConflictException($"Spot '{spot.Id}' already has a reservation overlapping the requested time window.");
         }
 
-        Reservation reservation;
+        PendingReservation reservation;
         try
         {
             reservation = Reservation.Place(spot, period, clock.UtcNow,
@@ -45,16 +43,30 @@ internal sealed class ReservationService(
             throw new ConflictException(ex.Message);
         }
 
+        if (spot.ReservationPage.PayementInformations?.Iban is { } iban)
+        {
+            var relativePath = await qrPaymentService.GenerateAndUploadAsync(
+                iban,
+                reservation.Amount,
+                "CZK",
+                reservation.VariableSymbol,
+                cancellationToken);
+
+            var qrUrl = applicationOptions.Value.BaseUrl.TrimEnd('/') + relativePath;
+            reservation.SetPaymentQrCodeUrl(qrUrl);
+        }
+
         await reservations.AddAsync(reservation, cancellationToken);
         await uow.SaveChangesAsync(cancellationToken);
+
+        await emailNotificationService.NotifyAsync(reservation);
+
         return ToDto(reservation);
     }
 
     public async Task<ReservationDto> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var reservation = await LoadAsync(id, cancellationToken);
-
-        EnsureOwnerOrAdmin(reservation);
 
         return ToDto(reservation);
     }
@@ -75,14 +87,7 @@ internal sealed class ReservationService(
     public async Task<IReadOnlyList<ReservationDto>> ListForPageByMonthAsync(
         string reservationPageId, int year, int month, CancellationToken cancellationToken = default)
     {
-        EnsureAdmin();
-
-        var userId = RequireUserId();
-
-        bool ownsPage = await reservationPages.OwnsPageAsync(userId, reservationPageId, cancellationToken);
-
-        if (!ownsPage)
-            throw new UnauthorizedException("You do not have access to this reservation page.");
+        await EnsureOwner(reservationPageId, cancellationToken);
 
         var result = await reservations.ListForPageAsync(reservationPageId, year, month, cancellationToken);
 
@@ -93,7 +98,7 @@ internal sealed class ReservationService(
     {
         var reservation = await LoadAsync(id, cancellationToken);
 
-        EnsureOwnerOrAdmin(reservation);
+        EnsureOwner(reservation);
 
         if (reservation is not PendingReservation pending)
             throw new ConflictException("Only pending reservations can be approved.");
@@ -102,46 +107,14 @@ internal sealed class ReservationService(
 
         await reservations.TransitionAsync(reservation, approved, cancellationToken);
 
-        var emailOpts = notificationOptions.Value.Email;
-        IResend resend = ResendClient.Create(emailOpts.ApiKey);
-
-        var cz = TimeZoneInfo.FindSystemTimeZoneById("Central European Standard Time");
-        var start = TimeZoneInfo.ConvertTimeFromUtc(reservation.Period.StartUtc, cz);
-        var end = TimeZoneInfo.ConvertTimeFromUtc(reservation.Period.EndUtc, cz);
-
-        var resp = await resend.EmailSendAsync(new EmailMessage()
-        {
-            From = emailOpts.From,
-            To = "michfiala.it@gmail.com",
-            Subject = "Hello World",
-            Template = new EmailMessageTemplate
-            {
-                TemplateId = new Guid("407ff780-6bfb-42e2-bb81-4686bc5c1d1c"),
-                Variables = new Dictionary<string, object>
-                {
-                    ["CustomerName"] = reservation.GuestName,
-                    ["ReservationNumber"] = reservation.VariableSymbol,
-                    ["ReservationDate"] = reservation.Period.StartUtc.ToString("d. MMMM yyyy", new CultureInfo("cs-CZ")) + " – " + reservation.Period.EndUtc.ToString("d. MMMM yyyy", new CultureInfo("cs-CZ")),
-                    ["ReservationLocation"] = reservation.Spot.Name,
-                    ["ReservationDescription"] = reservation.Spot.Description ?? string.Empty,
-                    ["ReservationStatus"] = reservation.Status switch
-                    {
-                        ReservationStatus.Approved => "Schválená",
-                        ReservationStatus.Cancelled => "Zrušená",
-                        _ => "Čeká na schválení"
-                    },
-                    ["ReservationUrl"] = string.Empty,
-                    ["QrCodeUrl"] = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/1280px-QR_code_for_mobile_English_Wikipedia.svg.png",
-                }
-            }
-        });
+        await emailNotificationService.NotifyAsync(approved);
     }
 
     public async Task CancelAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var reservation = await LoadAsync(id, cancellationToken);
 
-        EnsureOwnerOrAdmin(reservation);
+        EnsureOwner(reservation);
 
         var nowUtc = clock.UtcNow;
         var cancelled = reservation switch
@@ -153,6 +126,8 @@ internal sealed class ReservationService(
         };
 
         await reservations.TransitionAsync(reservation, cancelled, cancellationToken);
+
+        await emailNotificationService.NotifyAsync(cancelled);
     }
 
     private async Task<Reservation> LoadAsync(Guid id, CancellationToken cancellationToken)
@@ -161,27 +136,30 @@ internal sealed class ReservationService(
         return reservation ?? throw new NotFoundException(nameof(Reservation), id);
     }
 
-    private void EnsureAdmin()
-    {
-        RequireUserId();
-        if (!currentUser.IsInRole(AdminRole))
-            throw new UnauthorizedException("Admin role is required.");
-    }
-
     private Guid RequireUserId()
     {
         return currentUser.UserId
             ?? throw new UnauthorizedException("An authenticated user is required.");
     }
 
-    private void EnsureOwnerOrAdmin(Reservation reservation)
+    private void EnsureOwner(Reservation reservation)
     {
         var userId = RequireUserId();
 
-        if (reservation.ReservationPage.UserId != userId && !currentUser.IsInRole(AdminRole))
+        if (reservation.ReservationPage.UserId != userId)
         {
             throw new UnauthorizedException("You do not have access to this reservation.");
         }
+    }
+
+    private async Task EnsureOwner(string reservationPageId, CancellationToken cancellationToken = default)
+    {
+        var userId = RequireUserId();
+
+        bool ownsPage = await reservationPages.OwnsPageAsync(userId, reservationPageId, cancellationToken);
+
+        if (!ownsPage)
+            throw new UnauthorizedException("You do not have access to this reservation page.");
     }
 
     private static ReservationDto ToDto(Reservation reservation) => new(
@@ -203,6 +181,7 @@ internal sealed class ReservationService(
             reservation.GuestPhone,
             reservation.GuestNote
         ),
+        reservation.PaymentQrCodeUrl,
         reservation.CreatedAtUtc,
         (reservation as ApprovedReservation)?.ApprovedAtUtc,
         (reservation as CancelledReservation)?.CancelledAtUtc);

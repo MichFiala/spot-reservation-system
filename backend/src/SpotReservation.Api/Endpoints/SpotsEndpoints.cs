@@ -30,12 +30,12 @@ public static class SpotsEndpoints
             var created = await spots.CreateAsync(request, ct);
             return Results.Created($"/api/spots/{created.Id}", created);
         })
-        .RequireAuthorization(pb => pb.RequireRole("Admin"))
+        .RequireAuthorization()
         .Produces<SpotDto>(StatusCodes.Status201Created);
 
         group.MapPut("/{id:guid}", async (Guid id,  UpdateSpotRequest request, ISpotService spots, CancellationToken ct) =>
             Results.Ok(await spots.UpdateAsync(id, request, ct)))
-            .RequireAuthorization(pb => pb.RequireRole("Admin"))
+            .RequireAuthorization()
             .Produces<SpotDto>()
             .Produces(StatusCodes.Status404NotFound);
 
@@ -44,7 +44,7 @@ public static class SpotsEndpoints
             await spots.DeleteAsync(id, ct);
             return Results.NoContent();
         })
-        .RequireAuthorization(pb => pb.RequireRole("Admin"))
+        .RequireAuthorization()
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound);
 

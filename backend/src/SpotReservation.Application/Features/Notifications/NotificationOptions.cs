@@ -1,4 +1,4 @@
-namespace SpotReservation.Application.Notifications;
+namespace SpotReservation.Application.Features.Notifications;
 
 public sealed class NotificationOptions
 {

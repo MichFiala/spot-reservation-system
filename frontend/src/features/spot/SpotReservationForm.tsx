@@ -42,20 +42,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import type { SpotDto } from "../../api-client";
+import { type ReservationDto, type SpotDto } from "../../api-client";
 import { reservationsApi } from "../../api/apis";
 
 const STEP_LABELS = ["Termín", "Údaje", "Potvrzení", "Platba"];
-
-function buildSpdString(
-  iban: string,
-  amount: number,
-  currency: string,
-  vs: string,
-  message: string,
-) {
-  return `SPD*1.0*ACC:${iban}*AM:${amount.toFixed(2)}*CC:${currency}*X-VS:${vs}*MSG:${message}`;
-}
 
 const contactSchema = z.object({
   name: z.string().min(1, "Jméno je povinné"),
@@ -75,11 +65,12 @@ export function SpotReservationForm({
 }) {
   const [rangeStart, setRangeStart] = useState<Dayjs | null>(null);
   const [rangeEnd, setRangeEnd] = useState<Dayjs | null>(null);
+  const [createdReservation, setCreatedReservation] = useState<ReservationDto>();
   const queryClient = useQueryClient();
 
   const hasBookedDayInRange = (start: Dayjs, end: Dayjs) =>
     selectedSpot.occupiedDates
-      .map((d) => dayjs(d))
+      .map((d) => dayjs.utc(d))
       .some(
         (d) =>
           (d.isAfter(start, "day") || d.isSame(start, "day")) &&
@@ -397,18 +388,7 @@ export function SpotReservationForm({
             </Typography>
             <Box
               component="img"
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-                buildSpdString(
-                  createReservation.data?.data.paymentInfoDto.iban ||
-                    "CZ0000000000000000000000",
-                  createReservation.data?.data.paymentInfoDto.amount ||
-                    totalPrice,
-                  createReservation.data?.data.paymentInfoDto.currency || "CZK",
-                  createReservation.data?.data.paymentInfoDto.variableSymbol ||
-                    "0000000000",
-                  `Rezervace ${selectedSpot.name}`,
-                ),
-              )}`}
+              src={createdReservation?.paymentQrCodeUrl}
               alt="Platební QR kód"
               sx={{ width: 200, height: 200, borderRadius: 1 }}
             />
@@ -478,7 +458,8 @@ export function SpotReservationForm({
             disabled={createReservation.isPending}
             onClick={() => {
               createReservation.mutate(undefined, {
-                onSuccess: () => {
+                onSuccess: (response) => {
+                  setCreatedReservation(response.data);
                   setConfirmed(true);
                   setStep(3);
                 },

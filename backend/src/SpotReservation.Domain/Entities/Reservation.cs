@@ -25,6 +25,8 @@ public abstract class Reservation : Entity
     public string GuestPhone { get; private set; } = string.Empty;
     public string? GuestNote { get; private set; }
 
+    public string PaymentQrCodeUrl {get; private set;} = string.Empty;
+
     public virtual ReservationStatus Status { get; set;}
 
     // EF Core
@@ -79,6 +81,13 @@ public abstract class Reservation : Entity
             guestName.Trim(), guestEmail.Trim(), guestPhone.Trim(), guestNote?.Trim());
     }
 
+    public void SetPaymentQrCodeUrl(string paymentQrCodeUrl)
+    {
+        if(string.IsNullOrEmpty(paymentQrCodeUrl))
+            throw new ArgumentNullException(nameof(paymentQrCodeUrl));
+
+        PaymentQrCodeUrl = paymentQrCodeUrl;
+    }
 
     public void SetPeriod(TimeRange newPeriod)
     {

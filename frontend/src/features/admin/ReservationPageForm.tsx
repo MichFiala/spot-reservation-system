@@ -1,4 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Box,
@@ -37,6 +39,20 @@ import { apiClient } from "../../api/client";
 import type { CreateReservationPageRequest, ReservationPageDto, SpotDto, UpdateReservationPageRequest } from "../../api-client";
 import SpotForm, { type SpotFormValues } from "./SpotForm";
 import { isDirty } from "zod/v3";
+
+const slugRegex = /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/;
+
+const pageSchema = z.object({
+  id: z.string().regex(slugRegex, "3–63 znaků, pouze malá písmena, číslice a pomlčky, nesmí začínat ani končit pomlčkou"),
+  name: z.string().min(1, "Název je povinný"),
+  description: z.string().optional(),
+  mapCenter: z.any().optional(),
+  mapZoom: z.number().optional(),
+  mapMinZoom: z.number().optional(),
+  mapMaxZoom: z.number().optional(),
+});
+
+type PageFormValues = z.infer<typeof pageSchema>;
 
 interface Props {
   page?: ReservationPageDto | null;
@@ -114,7 +130,8 @@ export default function ReservationPageForm({ page, onCreate }: Props) {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { control, handleSubmit, formState, watch, setValue } =
-    useForm<CreateReservationPageRequest>({
+    useForm<PageFormValues>({
+      resolver: zodResolver(pageSchema),
       defaultValues: {
         id: page?.id ?? "",
         name: page?.name ?? "",
@@ -274,7 +291,7 @@ export default function ReservationPageForm({ page, onCreate }: Props) {
 
   const mutation = isEdit ? updateMutation : createMutation;
 
-  const onSubmit = (values: CreateReservationPageRequest) => {
+  const onSubmit = (values: PageFormValues) => {
     mutation.mutate(values);
   };
 

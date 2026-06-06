@@ -8,7 +8,7 @@ public static class ReservationPagesEndpoints
     public static IEndpointRouteBuilder MapReservationPages(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("api/reservation-pages")
-                       .RequireAuthorization(pb => pb.RequireRole("Admin"))
+                       .RequireAuthorization()
                        .WithTags("ReservationPages");
 
         // Publicly available for reservations
